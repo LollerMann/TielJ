@@ -1,0 +1,310 @@
+import "types.del";
+globalvar define sNameBuildArray;
+globalvar define sLengthBuildArray;
+globalvar define sLengthBuildIndex = 1;
+
+globalvar define inworldtextamount = 0;
+
+globalvar song[] musicArray = [new song("God god god god god godsgodgodgodsodgogd",320),
+                                new song("Botmann only followed orders",270),
+                                new song("You devious bastard", 300)];
+globalvar define musicArrayLength = 3;
+
+playervar define inworldOptionArray;
+
+playervar inputState state;
+playervar define inputHudRef;
+playervar define ininputTextRev;
+
+playervar define letmesee;
+globalvar define  inworldindex =0;
+playervar define  worldselectionindex = 0;
+playervar define  vote = 0;
+void RHI(define player) "Ready host for input"
+{   
+    Kill(player, player);
+    Resurrect();
+    SetStatus(player, Null(), Status.PhasedOut , 99999);
+    SetStatus(player,Null(),Status.Rooted,99999);
+    Teleport(player, NearestWalkablePosition(PositionOf(player)));
+    SetAimSpeed(player,0);
+    ChangeState(player,inputState.teleported);
+    CreateInWorldText(AllPlayers(), "IN INPUT", EyePosition(player), 5,Clipping.ClipAgainstSurfaces,InworldTextRev.None,Color.Purple, Spectators.VisibleAlways);
+    player.ininputTextRev = LastTextID();
+}
+
+void SLC() "Spawn Letter Circle" 
+{
+    define spacing = ((360 / lenletters));
+    define px = XOf(PositionOf(HostPlayer()));
+    define py = YOf(PositionOf(HostPlayer()));
+    define pz = ZOf(PositionOf(HostPlayer()));
+    define iter = 0;
+    for (define i = spacing *-1 ; i < 360; i+= spacing) //it spawns a null character idk why so I put two unneccessary characters at both ends and provide untrue length, if someone can do it properly I'll appreciate your help.
+    {
+        define xpos = px + lettercircleR * CosineFromDegrees(i);
+        define zpos = pz + lettercircleR * SineFromDegrees(i);
+        CreateInWorldText(HostPlayer(), letters[iter], Vector(xpos,YOf(EyePosition(HostPlayer())),zpos), 5,Clipping.DoNotClip, InworldTextRev.None, Color.Purple, Spectators.VisibleAlways);
+        inworldOptionArray = Append(inworldOptionArray, LastTextID());
+        iter++;
+    }
+    inworldtextamount += iter + 1;
+}
+
+void SMC(define player) "Spawn Music Circle"
+{
+    define px = XOf(PositionOf(player));
+    define py = YOf(PositionOf(player));
+    define pz = ZOf(PositionOf(player));
+    define iter = 0;
+    for (define i = 120 *-1 ; i < 360; i+= 120) //it spawns a null character idk why so I put two unneccessary characters at both ends and provide untrue length, if someone can do it properly I'll appreciate your help.
+    {
+        define xpos = px + lettercircleR * CosineFromDegrees(i);
+        define zpos = pz + lettercircleR * SineFromDegrees(i);
+        CreateInWorldText(player, musicArray[iter].name, Vector(xpos,YOf(EyePosition(HostPlayer())),zpos), 5,Clipping.DoNotClip, InworldTextRev.None, Color.Purple, Spectators.VisibleAlways);
+        player.inworldOptionArray = Append(player.inworldOptionArray, LastTextID());
+        iter++;
+    }
+}
+void SNC() "Spawn Numeric Circle" 
+{
+    define spacing = ((360 / lennumbers));
+    define px = XOf(PositionOf(HostPlayer()));
+    define py = YOf(PositionOf(HostPlayer()));
+    define pz = ZOf(PositionOf(HostPlayer()));
+    define iter = 0;
+    for (define i = spacing *-1 ; i < 360; i+= spacing) //it spawns a null character idk why so I put two unneccessary characters at both ends and provide untrue length, if someone can do it properly I'll appreciate your help.
+    {
+        define xpos = px + lettercircleR * CosineFromDegrees(i);
+        define zpos = pz + lettercircleR * SineFromDegrees(i); 
+        CreateInWorldText(HostPlayer(), numbers[iter], Vector(xpos,py,zpos), 5,Clipping.DoNotClip, InworldTextRev.None, Color.Purple, Spectators.VisibleAlways);
+        inworldOptionArray = Append(inworldOptionArray, LastTextID());
+        iter++;
+    }
+    inworldtextamount += iter + 1;
+}
+
+/*rule: "Is player ready for providing input?"
+Event.OngoingPlayer
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    SetFacing(HostPlayer(),Vector(0,0,0),Relative.ToPlayer);
+    HostPlayer().state = inputState.songname;
+}*/
+
+void ChangeState(define player, inputState stt) "Change state" // #### Text is how our desktop application will read our screen. No OCR, we read the color of the text at that location.
+{
+    player.state = stt;
+    if(player.inputHudRef != Null())DestroyHudText(HostPlayer().inputHudRef);
+    if(player.state == inputState.teleported){
+        if(player != HostPlayer()){
+            SLC();
+            SNC();
+            musicArray = EmptyArray();
+            CreateHudText(HostPlayer(), sNameBuildArray,Null(),Null(),Location.Top, 2, Color.Purple, Color.Purple,Color.Purple,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+            HostPlayer().letmesee = LastTextID();
+            CreateHudText(HostPlayer(), "#####", Null(), Null(), Location.Left, 0, Color.Red, Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet
+
+        }
+        else {
+            SMC(player);
+        }
+    }
+    else if(player.state == inputState.songname) {
+        SetFacing(player,Vector(0,0,0));
+        if(player != HostPlayer()){
+            inworldindex = 0; //I don't want to change every single occurence of inworldindex to player.inworldindex and deal with it's unforeseen consequences
+            CreateHudText(HostPlayer(), "#####", Null(), Null(), Location.Left, 0, Color.Green, Color.Green,Color.Green,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet      
+        } 
+        else {
+            player.worldselectionindex = 0;
+        }
+    }
+    else if(player.state == inputState.songlength) {
+        inworldindex = 0;
+        SetFacing(HostPlayer(),Vector(0,0,0));
+        if(player == HostPlayer()) CreateHudText(HostPlayer(), "#####", Null(), Null(), Location.Left, 0, Color.Blue, Color.Blue,Color.Blue,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet      
+    }
+    else {
+        if (player != HostPlayer()) {
+            for(define i = 0; i< inworldtextamount; i++) {
+           DestroyInWorldText(inworldOptionArray[i]);
+        }
+            inworldtextamount = 0;
+            inworldOptionArray = EmptyArray();
+            DestroyHudText(HostPlayer().letmesee);
+            DestroyInWorldText(ininputTextRev);
+            CreateHudText(HostPlayer(), "#####", Null(), Null(), Location.Left, 0, Color.Orange, Color.Orange,Color.Orange,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet      
+        }
+        else {
+            for(define i = 0; i < 4;i++) {
+                DestroyInWorldText(player.inworldOptionArray[i]);
+            }
+            player.inworldOptionArray = EmptyArray();
+            DestroyInWorldText(player.ininputTextRev);
+        }
+        SetAimSpeed(HostPlayer(),100);
+        ClearStatus(player,Status.Rooted);
+        ClearStatus(player,Status.Hacked);
+        ClearStatus(player,Status.PhasedOut);
+    }
+
+    if(player == HostPlayer()) HostPlayer().inputHudRef = LastTextID();
+}
+
+
+rule: "Handle input in menu | switch to left item"
+Event.OngoingPlayer
+//if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength)
+if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    define percentage;
+    
+    SetFacing(HostPlayer(),Vector(CosineFromDegrees(inworldindex * percentage),0, SineFromDegrees(inworldindex * percentage)),Relative.ToWorld);
+    if(EventPlayer() != HostPlayer()){
+        if(HostPlayer().state == inputState.songname){
+        percentage = (360/lenletters);
+        inworldindex--;
+        if(inworldindex < 0) inworldindex = lenletters -1;
+        }
+        else if (HostPlayer().state == inputState.songlength){
+            percentage = (360/lennumbers);
+            inworldindex--;
+            if(inworldindex < 0) inworldindex = lennumbers - 1;
+        }
+    }
+    else {
+        percentage = 120;
+        EventPlayer().worldselectionindex--;
+        if(EventPlayer().worldselectionindex <0) EventPlayer().worldselectionindex = 2;
+    }
+
+    
+    SetFacing(EventPlayer(),Vector(CosineFromDegrees(((EventPlayer() != HostPlayer()) ? inworldindex : EventPlayer().worldselectionindex) * percentage),0, SineFromDegrees(((EventPlayer() != HostPlayer()) ? inworldindex : EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); //no jeremy car gad bas for helf
+}
+
+rule: "Handle input in menu | switch to right item"
+Event.OngoingPlayer
+//if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength)
+if(IsButtonHeld(EventPlayer(), Button.SecondaryFire))
+{
+    define percentage;
+    if(EventPlayer() != HostPlayer()){
+        if(HostPlayer().state == inputState.songname){
+        percentage = (360/lenletters);
+        inworldindex++;
+        if(inworldindex >  lenletters -1) inworldindex = 0;
+        }
+        else if (HostPlayer().state == inputState.songlength){
+            percentage = (360/lennumbers);
+            inworldindex++;
+            if(inworldindex > lennumbers -1) inworldindex = 0;
+            
+        }
+    }
+    else {
+        percentage = 120;
+        EventPlayer().worldselectionindex++;
+        if(EventPlayer().worldselectionindex > 2) EventPlayer().worldselectionindex = 0;
+    }
+
+    
+    SetFacing(EventPlayer(),Vector(CosineFromDegrees(((EventPlayer() != HostPlayer()) ? inworldindex : EventPlayer().worldselectionindex) * percentage),0, SineFromDegrees(((EventPlayer() != HostPlayer()) ? inworldindex : EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // shut mouth hammock
+}
+
+rule: "Handle input in menu | send value to array"
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength)
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+{
+        if(HostPlayer().state == inputState.songname){
+            sNameBuildArray = <"<0><1>",sNameBuildArray, letters[inworldindex + 1]>;
+        }
+        else if (HostPlayer().state == inputState.songlength) {
+            sLengthBuildArray += sLengthBuildIndex * inworldindex;
+            sLengthBuildIndex *= 10;
+        }
+    }
+
+rule: "Handle input in menu | Confirm Array or choose entry"
+Event.OngoingPlayer
+//if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength)
+if(IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    if(EventPlayer() != HostPlayer()) {
+    if(HostPlayer().state == inputState.songname){
+       ChangeState(HostPlayer(),inputState.songlength);
+    }
+    else if (HostPlayer().state == inputState.songlength) {
+        if(musicArrayLength < 3){
+            musicArray = Append(musicArray, new song(sNameBuildArray,sLengthBuildArray));
+            ChangeState(HostPlayer(),inputState.songname);
+            musicArrayLength++;
+        }
+        else{
+            ChangeState(HostPlayer(),inputState.back);
+        } 
+        sNameBuildArray = CustomString();
+            sLengthBuildIndex = 0;
+            sLengthBuildArray = 0;
+    }
+    }
+    else {
+        ChangeState(EventPlayer(),inputState.back);
+    }
+}
+rule: "Initialize server Variables"
+Event.OngoingGlobal
+if(IsGameInProgress() == True())
+{
+    sNameBuildArray = EmptyArray();
+    
+}
+
+rule: "Initialize Tiel variables"
+Event.OnPlayerJoin
+if(IsGameInProgress() == True())
+{
+ 
+   ChangeState(EventPlayer(),inputState.back);
+   CreateHudText(HostPlayer(),state,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+
+    
+}
+
+/*
+rule: "Testit - Host Input"
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.back)
+if(IsButtonHeld(EventPlayer(),Button.Ultimate))
+{
+    RHI();
+    CreateHudText(HostPlayer(),inworldindex,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+    CreateHudText(HostPlayer(),<"NameBuild Array: <0>",sNameBuildArray>,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+    CreateHudText(HostPlayer(),<"slengthbuildarray: <0>", sLengthBuildArray>,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);  
+    ChangeState(inputState.songname);
+}
+*/
+
+rule: "Testit - Player Vote"
+Event.OngoingPlayer
+if(IsButtonHeld(EventPlayer(),Button.Interact))
+if(IsButtonHeld(EventPlayer(),Button.Crouch))
+{
+    CreateHudText(EventPlayer(),EventPlayer().worldselectionindex,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+    RHI(EventPlayer());
+    ChangeState(EventPlayer(),inputState.songname);
+}
+rule: "showpos"
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+{
+    CreateHudText(EventPlayer() ,PositionOf(EventPlayer()), Null(),Null(),Location.Top, Null(), Color.SkyBlue,Color.SkyBlue,Color.SkyBlue, HudTextRev.String,Spectators.VisibleAlways);
+    CreateHudText(EventPlayer() ,FacingDirectionOf(HostPlayer()), Null(),Null(),Location.Top, Null(), Color.SkyBlue,Color.SkyBlue,Color.SkyBlue, HudTextRev.String,Spectators.VisibleAlways);
+    
+}

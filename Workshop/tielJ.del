@@ -1,0 +1,378 @@
+import "types.del";
+import "binaryConversion.del";
+globalvar define sNameBuildArray = EmptyArray();
+globalvar define sLengthBuildArray = EmptyArray();
+globalvar define sLengthBuildIndex = 1;
+
+globalvar define inworldtextamount = 0;
+
+/*globalvar song[] musicArray = [new song("Cover yourself in oil",320),
+                                new song("I'm stuff",270),
+                                new song("Gorrammedic bastards", 300)];*/
+globalvar song[] musicArray = EmptyArray();
+//globalvar define musicArrayLength = 0;
+
+playervar define inworldOptionArray;
+
+playervar inputState state;
+playervar define inputHudRef;
+playervar define ininputTextRev;
+
+playervar define letmesee;
+globalvar define  inworldindex =0;
+playervar define  worldselectionindex = 0;
+
+playervar define votingavailableHUDtext;
+playervar define votingavailable = False();
+globalvar define votewinnerindex = 0;
+
+globalvar define currentlyplaying = "";
+globalvar define playing = False();
+globalvar define initialsonglen = 0; //avoid division by zero
+globalvar define songlen = 0;
+globalvar define songname;
+playervar define p_px;
+playervar define p_py;
+playervar define p_pz;
+playervar define p_iter;
+globalvar define BinaryBuildArray = EmptyArray();
+globalvar define decodedsongname;
+
+globalvar define SessionInitialized = False();
+
+void RPI(define player, define ishostVote) "Ready player for input, or raspberry pi depending on purview of your conondurums of philosophy"
+{   
+    Kill(player, player);
+    Resurrect();
+    SetStatus(player, Null(), Status.PhasedOut , 99999);
+    SetStatus(player,Null(),Status.Rooted,99999);
+    SetStatus(player,Null(),Status.Hacked,99999);
+    Teleport(player, NearestWalkablePosition(PositionOf(player)));
+    SetAimSpeed(player,0);
+    if(!ishostVote){
+        ChangeState(player,inputState.teleported);
+    }
+    else{
+        //CreateHudText(player, player.worldselectionindex, Null(), Null(), Location.Right, 0, Color.Green, Color.Green,Color.Green,HudTextRev.String,Spectators.VisibleAlways); //We are teleported but don't just start yet      
+        ChangeState(player,inputState.hostvote);
+    } 
+    CreateInWorldText(AllPlayers(), "IN INPUT", EyePosition(player), 5,Clipping.ClipAgainstSurfaces,InworldTextRev.None,Color.Purple, Spectators.VisibleAlways);
+    player.ininputTextRev = LastTextID();
+}
+
+void SMC(define player) "Spawn Music Circle"
+{
+    player.p_px = XOf(PositionOf(player));
+    player.p_py = YOf(PositionOf(player));
+    player.p_pz = ZOf(PositionOf(player));
+    player.p_iter = 0;
+    for (define i = 120 *-1 ; i < 360; i+= 120) //it spawns a null character idk why so I put two unneccessary characters at both ends and provide untrue length, if someone can do it properly I'll appreciate your help.
+    {
+        define xpos = player.p_px + lettercircleR * CosineFromDegrees(i);
+        define zpos = player.p_pz + lettercircleR * SineFromDegrees(i);
+        CreateInWorldText(player, musicArray[player.p_iter].name, Vector(xpos,YOf(EyePosition(HostPlayer())),zpos), 5,Clipping.DoNotClip, InworldTextRev.None, Color.Purple, Spectators.VisibleAlways);
+        player.inworldOptionArray = Append(player.inworldOptionArray, LastTextID());
+        player.p_iter++;
+    }
+}
+void ChangeState(define player, inputState stt) "Change state" // #### Text is how our desktop application will read our screen. No OCR, we read the color of the text at that location.
+{
+    player.state = stt;
+    
+    if(player.inputHudRef != Null())DestroyHudText(HostPlayer().inputHudRef);
+    if(stt == inputState.sessioninit){
+        player.state = stt;
+    }
+    else if(player.state == inputState.teleported){
+        if(player == HostPlayer()){
+            musicArray = EmptyArray();
+            //musicArrayLength = 0;
+            CreateHudText(HostPlayer(), sNameBuildArray,Null(),Null(),Location.Top, 2, Color.Purple, Color.Purple,Color.Purple,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+            HostPlayer().letmesee = LastTextID();
+            CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Red, Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet
+
+        }
+        else {
+            SMC(player);
+        }
+    }
+    else if(player.state == inputState.songname || player.state == inputState.hostvote) {
+        SetFacing(player,Vector(0,0,0));
+        if(player == HostPlayer() && player.state != inputState.hostvote){
+            HostPlayer().worldselectionindex = 0;
+            CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Green, Color.Green,Color.Green,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet      
+        } 
+        else {
+            SMC(player);
+            player.worldselectionindex = 0;
+        }
+    }
+    else if(player.state == inputState.songlength) {
+        HostPlayer().worldselectionindex = 0;
+        SetFacing(HostPlayer(),Vector(0,0,0));
+        if(player == HostPlayer()) CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Blue, Color.Blue,Color.Blue,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet      
+    }
+    else if(player.state == inputState.hostage){
+        if(votewinnerindex == 0) CreateHudText(player,"######",Null(), Null(), Location.Top, 1, Color.Red,Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways);
+        if(votewinnerindex == 1) CreateHudText(player,"######",Null(), Null(), Location.Top, 1, Color.Green,Color.Green,Color.Green,HudTextRev.None,Spectators.VisibleAlways);
+        if(votewinnerindex == 2) CreateHudText(player,"######",Null(), Null(), Location.Top, 1, Color.Blue,Color.Blue,Color.Blue,HudTextRev.None,Spectators.VisibleAlways);
+    }
+    else {
+        if (player == HostPlayer()) {
+        /*for(define i = 0; i< inworldtextamount; i++) {
+           DestroyInWorldText(inworldOptionArray[i]);
+        }*/
+            //inworldtextamount = 0;
+            //inworldOptionArray = EmptyArray();
+            DestroyHudText(HostPlayer().letmesee);
+            //DestroyInWorldText(ininputTextRev);
+            CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Orange, Color.Orange,Color.Orange,HudTextRev.None,Spectators.VisibleAlways);
+        }
+        ClearInWorldOptions(player);
+        player.inworldOptionArray = EmptyArray();
+        DestroyInWorldText(player.ininputTextRev);
+
+        SetAimSpeed(HostPlayer(),100);
+        ClearStatus(player,Status.Rooted);
+        ClearStatus(player,Status.Hacked);
+        ClearStatus(player,Status.PhasedOut);
+    }
+
+    if(player == HostPlayer()) HostPlayer().inputHudRef = LastTextID();
+}
+
+void ClearInWorldOptions(define player){
+    for(define i = 0; i < CountOf(player.inworldOptionArray);i++) {
+            DestroyInWorldText(player.inworldOptionArray[i]);
+        }
+}
+rule: "Handle input in menu | switch to left item"
+Event.OngoingPlayer
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostvote)
+if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    define percentage;
+    if(EventPlayer() == HostPlayer() && EventPlayer().state != inputState.hostvote){
+        BinaryBuildArray = Append(BinaryBuildArray,0);
+    }
+    else {
+        percentage = 120;
+        EventPlayer().worldselectionindex--;
+        if(EventPlayer().worldselectionindex <0) EventPlayer().worldselectionindex = 2;
+        SetFacing(EventPlayer(),Vector(CosineFromDegrees(EventPlayer().worldselectionindex * percentage),0, SineFromDegrees((EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // no jeremy car gad bas for helf
+    }
+}
+
+rule: "Handle input in menu | switch to right item"
+Event.OngoingPlayer
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostvote)
+if(IsButtonHeld(EventPlayer(), Button.SecondaryFire))
+{
+    define percentage;
+    if(EventPlayer() == HostPlayer() && EventPlayer().state != inputState.hostvote){
+        BinaryBuildArray = Append(BinaryBuildArray,1);
+    }
+    else {
+        percentage = 120;
+        EventPlayer().worldselectionindex++;
+        if(EventPlayer().worldselectionindex > 2) EventPlayer().worldselectionindex = 0;
+        SetFacing(EventPlayer(),Vector(CosineFromDegrees(EventPlayer().worldselectionindex * percentage),0, SineFromDegrees((EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // shut mouth hammock
+    }
+}
+
+rule: "Handle input in menu | send value to array"
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength)
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    sNameBuildArray = Append(sNameBuildArray,BinaryBuildArray);
+    BinaryBuildArray = EmptyArray();
+}
+
+rule: "Handle input in menu | Confirm Array | Acknowledge Hostage Situation | Choose entry"
+Event.OngoingPlayer
+//if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostage || EventPlayer().state == inputState.hostvote)
+if(IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    if(EventPlayer() == HostPlayer() && EventPlayer().state != inputState.hostvote) {
+        BinaryBuildArray = EmptyArray();
+        if(HostPlayer().state == inputState.songname){
+            DecodeString(sNameBuildArray);
+            decodedsongname = currentdecoded;
+            if(!SessionInitialized) songname = decodedsongname;
+            sNameBuildArray = EmptyArray();
+            ChangeState(HostPlayer(),inputState.songlength);
+        }
+        else if (HostPlayer().state == inputState.songlength) {
+            DecodeNumber(sNameBuildArray);
+            if(!SessionInitialized){
+                songlen = currentdecoded;
+                initialsonglen = currentdecoded;
+                playing = True();
+                SessionInitialized = True();
+                ChangeState(HostPlayer(),inputState.back);
+            }
+            else{
+                musicArray = Append(musicArray, new song(decodedsongname,currentdecoded));
+                if(CountOf(musicArray) < 3){
+                    ChangeState(HostPlayer(),inputState.songname);
+                    //musicArrayLength++;
+                 }
+                else{
+                    ChangeState(HostPlayer(),inputState.back);
+                } 
+            }
+        }
+        else if(HostPlayer().state == inputState.hostage){
+            songname = musicArray[votewinnerindex].name;
+            songlen = musicArray[votewinnerindex].length;
+            initialsonglen = songlen;
+            currentlyplaying = <"<0>\n<1>",songname,songlen>;
+            playing = True();
+            musicArray = EmptyArray();
+            ChangeState(EventPlayer(), inputState.back);
+        }
+    }
+    else {
+        SmallMessage(EventPlayer(),"Vote submitted");
+        ChangeState(EventPlayer(),inputState.back);
+    }
+}
+
+
+rule: "Initialize server Variables"
+Event.OngoingGlobal
+if(IsGameInProgress() == True())
+{
+    sNameBuildArray = EmptyArray();
+    
+}
+
+rule: "Initialize Tiel variables"
+Event.OnPlayerJoin
+if(IsGameInProgress() == True())
+{
+ 
+   ChangeState(EventPlayer(),inputState.back);
+   EventPlayer().worldselectionindex = 0;
+   //CreateHudText(HostPlayer(),state,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+   CreateHudText(EventPlayer(),currentlyplaying, Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+
+    
+}
+
+rule: "Player Vote"
+Event.OngoingPlayer
+if(EventPlayer() != HostPlayer())
+if(IsButtonHeld(EventPlayer(),Button.Interact))
+if(IsButtonHeld(EventPlayer(),Button.Crouch))
+if(EventPlayer().votingavailable)
+{
+    CreateHudText(EventPlayer(),EventPlayer().worldselectionindex,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+    RPI(EventPlayer(),False());
+    ChangeState(EventPlayer(),inputState.songname);
+}
+
+rule: "Show voting status"
+Event.OngoingPlayer
+if(CountOf(musicArray) == 0 || CountOf(musicArray) == 3)
+{
+    if(EventPlayer().votingavailableHUDtext != null) DestroyInWorldText(EventPlayer().votingavailableHUDtext);
+    if(CountOf(musicArray) == 0){
+        CreateHudText(EventPlayer(),"Voting Unavailable",Null(),Null(),Location.Right,1,Color.Red,Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways);
+        EventPlayer().votingavailable = False();
+    }
+    else {
+        EventPlayer().votingavailable = True();
+        CreateHudText(EventPlayer(),<"Vote Now! <0> + <1>","FIXME, CROUCH BINDING ICON","FIXME, INTERACT BINDING ICON">,Null(),Null(),Location.Right,1,Color.Yellow,Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
+    }
+    EventPlayer().votingavailableHUDtext = LastTextID();
+}
+/*rule: "showpos"
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+{
+    CreateHudText(EventPlayer() ,PositionOf(EventPlayer()), Null(),Null(),Location.Top, Null(), Color.SkyBlue,Color.SkyBlue,Color.SkyBlue, HudTextRev.String,Spectators.VisibleAlways)
+    CreateHudText(EventPlayer() ,FacingDirectionOf(HostPlayer()), Null(),Null(),Location.Top, Null(), Color.SkyBlue,Color.SkyBlue,Color.SkyBlue, HudTextRev.String,Spectators.VisibleAlways)
+    
+}*/
+
+rule: "Let host vote"
+Event.OngoingPlayer
+if(EventPlayer() == HostPlayer())
+if(EventPlayer().state == inputState.back)
+if(IsButtonHeld(EventPlayer(), Button.Crouch) && IsButtonHeld(EventPlayer(), Button.Interact))
+if(songlen > initialsonglen/2 + 12)// twelve seconds to vote for host
+{
+    RPI(EventPlayer(),True());
+}
+rule: "Countdown"
+Event.OngoingGlobal
+if(playing)
+{
+    while(playing){
+        songlen--;
+        currentlyplaying = <"<0>   <1>:<2>",songname,RoundToInteger(songlen/60,Rounding.Down),songlen%60>
+        Wait(1);
+    }
+}
+rule: "TielJ | an automated overwatch music bot"
+Event.OngoingPlayer //You might ask why player? Why not global? It's because I call EventPlayer stuff in there somewhere and DeltInteger complains about it.
+if(IsGameInProgress())
+if(EventPlayer() == HostPlayer()) //run only on host
+{
+    while(IsGameInProgress()){
+        if(HostPlayer().state != inputState.songname && HostPlayer().state != inputState.songlength && !SessionInitialized){
+            if(XOf(PositionOf(HostPlayer())) != 0 && YOf(PositionOf(HostPlayer())) != 0 && ZOf(PositionOf(HostPlayer())) != 0){
+                SmallMessage(HostPlayer(),"Welcome To TielJ! Please file bug reports in github url.");
+                Wait(5);
+                BigMessage(HostPlayer(),"TielJ will begin communicating with game in 10 Seconds");
+                SmallMessage(HostPlayer(),"Refrain from doing anything while TielJ does it's thing.");
+                Wait(10);
+                ChangeState(HostPlayer(),inputState.sessioninit);
+                RPI(HostPlayer(),False());
+                ChangeState(HostPlayer(),inputState.songname);
+            }
+        }
+        if(songlen < initialsonglen /1.3 && CountOf(musicArray) != 3 && SessionInitialized){
+            if(HostPlayer().state != inputState.songlength && HostPlayer().state != inputState.songname && HostPlayer().state != inputState.teleported){ //TJ is doing nothing
+                //if(XOf(PositionOf(HostPlayer())) != 0 && YOf(PositionOf(HostPlayer())) != 0 && ZOf(PositionOf(HostPlayer())) != 0){ //Host Didn't spawn yet
+                    if(HostPlayer().state != inputState.back) ChangeState(HostPlayer(),inputState.back);
+                    BigMessage(HostPlayer(), "Input sequence will begin in 5 seconds...");
+                    Wait(5);
+                    RPI(HostPlayer(),False());
+                    ChangeState(HostPlayer(), inputState.songname);
+                //}
+            }
+        }
+        else if (songlen == 0 && HostPlayer().state !=inputState.hostage && SessionInitialized){
+            playing = False();
+            define votearr = [0,0,0];
+            for (define i = 0; i < CountOf(AllPlayers()); i++)
+            {
+                if(AllPlayers()[i].state != inputState.back && AllPlayers()[i] !=HostPlayer())ChangeState(AllPlayers()[i],inputState.back);
+                votearr[AllPlayers()[i].worldselectionindex]++;
+            }
+            define lewinner = [0,0];
+            for (define i = 0; i < 3; i++)
+            {
+                if(lewinner[1] < votearr[i]){
+                    lewinner[0] = i;
+                    lewinner[1] = votearr[i];
+                }
+            }
+            votewinnerindex = lewinner[0];
+            currentlyplaying = musicArray[lewinner[0]].name;
+            initialsonglen = musicArray[lewinner[0]].length;
+            songlen = musicArray[lewinner[0]].length;
+            RPI(HostPlayer(),False());
+            ChangeState(HostPlayer(),inputState.hostage);
+        }
+        Wait(1);
+    }
+}
+
+//What to do:
+//Piss in bed

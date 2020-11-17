@@ -1,0 +1,31 @@
+enum musicType {
+    electronic,
+    pop,
+    rock
+    }
+
+enum inputState {
+    unintialized,
+    teleported,
+    songname,
+    songlength,
+    hostage,
+    hostvote,
+    back
+}
+
+globalvar define letters = ["Null", "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","-"," "];
+globalvar define numbers = ["Null", 0,1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9," "];
+globalvar define lenletters = 27;
+globalvar define lennumbers = 10;
+globalvar define lettercircleR = 5;
+class song{
+    //public musicType type;
+    public define name;
+    public define length;
+    public song(define nm, define len){
+        this.name = nm;
+        this.length = len;
+    }
+}
+
