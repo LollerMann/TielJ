@@ -50,6 +50,7 @@ namespace _TielJ.Player.Crawln_Grab {
             Fill(memstr, 255, (int)audioInfo.contentLength);
             memstr.Position = 0;
             BufferThread = new Thread(new ThreadStart(readToStream));
+	    BufferThread.Start();
             return memstr;
         }
         static void Fill(Stream stream, byte value, int count) {
