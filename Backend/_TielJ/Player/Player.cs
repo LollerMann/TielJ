@@ -50,6 +50,7 @@ namespace _TielJ.Player {
         public static void InitUrl(string url) {
             seconds = 0;
             if (Agent != null) Agent.Dispose();
+            if (current.bufferedStream != null) current.bufferedStream.Dispose();
             Match sitename = Regex.Match(url, @"\.((.*?)\..*?)/");
             if (!supportedSites.ContainsKey(sitename.Groups[1].Value)) throw new NotImplementedException($"TielJ does not support this website yet! {sitename.Groups[2].Value}");
             Agent = (BaseClass)Activator.CreateInstance(supportedSites[sitename.Groups[1].Value]);

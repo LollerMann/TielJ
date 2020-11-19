@@ -18,7 +18,7 @@ namespace _TielJ.Player.Crawln_Grab {
             return musicInfos;
         }
         void BaseClass.Dispose() {
-            if(me.bufferedStream != null)me.bufferedStream.Close();
+            if(me.bufferedStream != null)me.bufferedStream.Dispose();
             if (resp != null) resp.Close();
         }
         public musicInfo getCurrentMusicInfo() {

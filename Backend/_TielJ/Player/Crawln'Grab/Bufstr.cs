@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using NAudio.Wave;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace _TielJ.Player.Crawln_Grab {
     class bufferedStream {
@@ -14,6 +15,8 @@ namespace _TielJ.Player.Crawln_Grab {
         int totalbuffered = 0;
         MemoryStream memstr;
         long memstrpos;
+        Thread BufferThread;
+        bool abortnite = false;
         public bufferedStream(audioInfo info) {
             audioInfo = info;
             stream = audioInfo.serverAudioStream;
@@ -22,16 +25,15 @@ namespace _TielJ.Player.Crawln_Grab {
             stream = str;
         }
 
-        internal void Close() {
+        public void Dispose(){
             audioInfo.serverAudioStream.Close();
+            abortnite = true;
         }
 
         public void readToStream() {
             int prevbufcount = totalbuffered;
-            //if (bufferedcount == 0) jumpstart();
-            uint bytestobeloaded = (uint)(30 * (audioInfo.bitrate / 8));
-            while (stream.CanRead && prevbufcount + bytestobeloaded > totalbuffered && bufferedcount != 0) { //read around 30 seconds of content;
-                Console.Write($"Caching {prevbufcount + bytestobeloaded}/{totalbuffered}\r");
+            do{
+                Console.Write($"Caching {totalbuffered}\r");
                 byte[] buf = new byte[1024];
                 bufferedcount = stream.Read(buf, 0, 1024);
                 memstr.Position = memstrpos;
@@ -39,24 +41,15 @@ namespace _TielJ.Player.Crawln_Grab {
                 memstr.Write(buf, 0, bufferedcount);
                 memstrpos = memstr.Position;
             }
+            while (stream.CanRead && bufferedcount != 0 && !abortnite);
         }
-        private void jumpstart() {
-            //int prevbufcount = -1;
-            Console.WriteLine($"Jumpstarting");
-             byte[] buf = new byte[1024];
-             bufferedcount = stream.Read(buf, 0, 1024);
-             totalbuffered += bufferedcount;
-             memstr.Position = 0;
-             memstr.Write(buf, 0, bufferedcount);
-            memstrpos = memstr.Position;
-        }
+
         public MemoryStream getStream() {
             this.memstr = new MemoryStream();
             this.memstr.SetLength(audioInfo.contentLength);
             Fill(memstr, 255, (int)audioInfo.contentLength);
             memstr.Position = 0;
-            jumpstart();
-            readToStream();
+            BufferThread = new Thread(new ThreadStart(readToStream));
             return memstr;
         }
         static void Fill(Stream stream, byte value, int count) {
