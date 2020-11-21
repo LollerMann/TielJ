@@ -67,6 +67,12 @@ namespace _TielJ.Player.Crawln_Grab {
             return memstr;
         }
 
+        public void pause() {
+            this.paused = true;
+        }
+        public void resume() {
+            this.paused = false;
+        }
         public void stopBuffering() {
             this.abortnite = true;
             this.BufferThread.Join();
