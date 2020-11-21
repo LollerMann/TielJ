@@ -17,6 +17,16 @@ namespace _TielJ.Player.Crawln_Grab {
         long memstrpos;
         Thread BufferThread;
         bool abortnite = false;
+        bool paused = false;
+
+        public int ToBeBuffered {
+            private set {
+                ToBeBuffered = value;
+            }
+            get {
+                return ToBeBuffered;
+            }
+        }
         public bufferedStream(audioInfo info) {
             audioInfo = info;
             stream = audioInfo.serverAudioStream;
@@ -31,17 +41,20 @@ namespace _TielJ.Player.Crawln_Grab {
         }
 
         public void readToStream() {
-            int prevbufcount = totalbuffered;
-            do{
-                Console.Write($"Caching {totalbuffered}\r");
-                byte[] buf = new byte[1024];
-                bufferedcount = stream.Read(buf, 0, 1024);
-                memstr.Position = memstrpos;
-                totalbuffered += bufferedcount;
-                memstr.Write(buf, 0, bufferedcount);
-                memstrpos = memstr.Position;
+            while (!abortnite && bufferedcount != 0) {
+                int prevbufcount = totalbuffered;
+                ToBeBuffered = 20 * (this.audioInfo.bitrate / 8);
+                while (stream.CanRead && bufferedcount != 0 && !abortnite && totalbuffered < ToBeBuffered && !paused) {
+                    Console.Write($"Caching {totalbuffered}/{ToBeBuffered}\r");
+                    byte[] buf = new byte[1024];
+                    bufferedcount = stream.Read(buf, 0, 1024);
+                    memstr.Position = memstrpos;
+                    totalbuffered += bufferedcount;
+                    memstr.Write(buf, 0, bufferedcount);
+                    memstrpos = memstr.Position;
+                }
+                Thread.Sleep(100000);
             }
-            while (stream.CanRead && bufferedcount != 0 && !abortnite);
         }
 
         public MemoryStream getStream() {
@@ -52,6 +65,15 @@ namespace _TielJ.Player.Crawln_Grab {
             BufferThread = new Thread(new ThreadStart(readToStream));
 	    BufferThread.Start();
             return memstr;
+        }
+
+        public void stopBuffering() {
+            this.abortnite = true;
+            this.BufferThread.Join();
+        }
+        public void startBuffering() {
+            abortnite = false;
+            this.BufferThread.Start();
         }
         static void Fill(Stream stream, byte value, int count) {
             var buffer = new byte[64];
