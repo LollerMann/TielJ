@@ -92,13 +92,16 @@ namespace _TielJ.Player.Crawln_Grab {
                 process.Start();
                 process.WaitForExit();
                 string hsc = "header: Set-Cookie:";
-                WebRequest req = HttpWebRequest.Create("http://www.retardedispsayswhat.net");
+                string url = "crikey"
+                WebRequest req;
                 string youtubedlres = process.StandardOutput.ReadToEnd();
                 foreach (string line in youtubedlres.Split('\n')) {
                     if (line.StartsWith("https")) {
-                        req = HttpWebRequest.Create(line);
+                        url = line;
                     }
                 }
+                if(url == "crikey") throw new Exception("youtube-dl has encountered an error");
+                else req = HttpWebRequest.Create(url);
                 HttpWebRequest httpreq = (HttpWebRequest)req;
                 httpreq.CookieContainer = new CookieContainer();
                 foreach (string line in youtubedlres.Split('\n')) {
