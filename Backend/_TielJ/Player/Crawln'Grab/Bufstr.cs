@@ -43,7 +43,7 @@ namespace _TielJ.Player.Crawln_Grab {
         public void readToStream() {
             while (!abortnite && bufferedcount != 0) {
                 int prevbufcount = totalbuffered;
-                ToBeBuffered = 20 * (this.audioInfo.bitrate / 8);
+                ToBeBuffered = 20 * (this.audioInfo.bitrate / 8) + prevbufcount;
                 while (stream.CanRead && bufferedcount != 0 && !abortnite && totalbuffered < ToBeBuffered && !paused) {
                     Console.Write($"Caching {totalbuffered}/{ToBeBuffered}\r");
                     byte[] buf = new byte[1024];
