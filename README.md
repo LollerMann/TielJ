@@ -28,7 +28,7 @@ When playing content reaches it's end, winning option gets selected and Host Pla
 Head over to `OWStuff.cs` file and find the private `KeyMap` dictionary (should be around line 177) and work your way there.
 
 # Bugs I encountered during my limited testing
-- [ ] Youtube randomly gives an improper response and as a result backend literally dies (Best I can do is try until it works)
+- [ ] Youtube randomly gives an improper response and as a result backend literally dies (Best I can do is try until it works) | (NEEDS TESTING)
 - [ ] During binary conversion in workshop code, content's length is set to value a workshop variable can hold max. Resulting in infinite playtime.
-- [ ] During buffering, a race condition arises so a considerable portion of content gets skipped (using multi threading might fix this)
+- [ ] During buffering, a race condition arises so a considerable portion of content gets skipped (using multi threading might fix this) (NEEDS TESTING)
 - [ ] Some content's length might be less than needed to input a complete array of music infos. (Not selecting those videos for input or not pussying out when sending input might fix this issue)
