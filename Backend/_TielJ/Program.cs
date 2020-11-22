@@ -12,6 +12,7 @@ namespace _TielJ {
 
     class Program {       
         static void Main(string[] args) {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             if (args.Length < 1) throw new Exception("Please specify a starting video url");
             /*List<byte[]> pss = OWStuff.MakeItLeet("DecodeMe");
             Console.Write('[');

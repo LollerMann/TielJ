@@ -121,6 +121,7 @@ namespace _TielJ {
         }
         public static inputState getState(Bitmap screen) {
             e_HUDLoc location;
+            if (screen.Width < 1270 && screen.Height < 720) return inputState.unrecognized;
             if (readColorFrom(screen, e_HUDLoc.topLeft) != colornames.UNRECOGNIZED) location = e_HUDLoc.topLeft;
             else location = e_HUDLoc.middle;
             colornames readColor = readColorFrom(screen, location);
@@ -190,11 +191,11 @@ namespace _TielJ {
             Console.WriteLine(data);
             List<byte[]> outofmymind = new List<byte[]>();
             List<byte> quaint = new List<byte>();
-            string result = string.Empty;
+            /*string result = string.Empty;
             foreach (char ch in data) {
                 result += Convert.ToString((int)ch, 2).PadLeft(8, '0');
             }
-            Console.WriteLine(result);
+            Console.WriteLine(result);*/
             foreach (char ch in data) {
                 string fuck = Convert.ToString((int)ch, 2).PadLeft(8, '0');
                 foreach(char charac in fuck) {

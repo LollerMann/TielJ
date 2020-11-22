@@ -27,7 +27,7 @@ namespace _TielJ.Player.Crawln_Grab {
 
         audioInfo me;
 
-        musicInfo coolerme;
+        musicInfo coolerme = new musicInfo() { url = "uninitialized"};
         musicInfo[] musicInfos = new musicInfo[3];
         WebResponse resp;
         void BaseClass.Initialize(string url) {

@@ -10,16 +10,18 @@ using static _TielJ.OWStuff;
 
 namespace _TielJ {
     public class TielJ {
+        public static double version = 0.1;
         string initurl;
         public TielJ(string url) {
             initurl = url;
+            WindowRenderer.init();
             Player.Player.Initialize();
             Player.Player.InitUrl(url);
             OverwatchHandle = GetWindowH.getproc("Overwatch");
             if (OverwatchHandle == IntPtr.Zero) throw new Exception("Couldn't get window handle");
             MainLoop();
         }
-        private inputState prevInputState = inputState.unrecognized;
+        public static inputState prevInputState = inputState.unrecognized;
         IntPtr OverwatchHandle = IntPtr.Zero;
 
         bool initiated = false;
@@ -29,25 +31,22 @@ namespace _TielJ {
                 Bitmap screenshot = Screen.CaptureWindow(OverwatchHandle);
                 inputState currentstate = getState(screenshot);
                 if(currentstate != prevInputState) {
+                    prevInputState = currentstate;
                     switch (currentstate) {
                         case inputState.sessionbegin:
                             initiated = false;
                             KeyManager.SendKey(GetGameKey(gameKeys.Interact)); //This will take us to song info entering state | I ended up skipping it
-                            Console.WriteLine("Sess beg");
                             break;
                         case inputState.hostage:
                             int winner = getVoteResult(screenshot);
-                            Console.WriteLine("Hostage");
                             //read the winner song and play it
                             if (winner == -69) throw new Exception("Unable to recognize vote winner. You may need to update color definitions");
                             Player.Player.Play(Player.Player.GetMusicUrl(winner)); //I think I had a stroke
                             KeyManager.SendKey(GetGameKey(gameKeys.Ultimate));
                             break;
                         case inputState.idle:
-                            Console.WriteLine("Idle");
                             break;
                         case inputState.songlength:
-                            Console.WriteLine("Songlen");
                             if (!initiated) {
                                 KeyManager.SendInput(MakeItLeet(Player.Player.MusicInfo.length.ToString()), OverwatchHandle);
                                 initiated = true;
@@ -61,7 +60,6 @@ namespace _TielJ {
                             KeyManager.SendKey(GetGameKey(gameKeys.Ultimate));
                             break;
                         case inputState.songname:
-                            Console.WriteLine("SongName");
                             if (!initiated) {
                                 KeyManager.SendInput(MakeItLeet(Player.Player.MusicInfo.name + "|" + Player.Player.MusicInfo.artist), OverwatchHandle);
                             }
@@ -72,14 +70,13 @@ namespace _TielJ {
                             KeyManager.SendKey(GetGameKey(gameKeys.Ultimate));
                             break;
                         case inputState.teleported:
-                            Console.WriteLine("Teleported");
                             break;
                         case inputState.unrecognized:
-                            Console.WriteLine("unrecognized");
                             break;//I don't know what to do with these informations
                     }
                 }
                 Player.Player.Tick();
+                WindowRenderer.Render();
                 Thread.Sleep(1000);
             }
         }

@@ -14,16 +14,24 @@ namespace _TielJ.Player {
         enum websites {
             youtube
         };
-        static Dictionary<string,Type> supportedSites = new Dictionary<string,Type>(){ //I only plan to support youtube and maybe soundcloud.
+        static Dictionary<string, Type> supportedSites = new Dictionary<string, Type>(){ //I only plan to support youtube and maybe soundcloud.
             { "youtube.com",typeof(youtube) }
         };
 
-        static WaveOut WaveOut;
+        public static WaveOut WaveOut {
+            private set {
+                WaveOut = value;
+            }
+            get {
+                return WaveOut;
+            }
+        }
         static BaseClass Agent;
         static audioInfo current;
 
         public static musicInfo MusicInfo {
             get {
+                if (Agent == null) return new musicInfo() {};
                 return Agent.getCurrentMusicInfo();
             }
         }
@@ -46,10 +54,11 @@ namespace _TielJ.Player {
         public static string GetMusicUrl(int index) {
             return Agent.GetSimilar()[index].url;
         }
-        static int seconds =0;
+        public static int seconds =0;
         public static void InitUrl(string url) {
             seconds = 0;
             if (Agent != null) Agent.Dispose();
+            Agent = null;
             if (current.bufferedStream != null) current.bufferedStream.Dispose();
             Match sitename = Regex.Match(url, @"\.((.*?)\..*?)/");
             if (!supportedSites.ContainsKey(sitename.Groups[1].Value)) throw new NotImplementedException($"TielJ does not support this website yet! {sitename.Groups[2].Value}");
@@ -59,7 +68,17 @@ namespace _TielJ.Player {
         }
         public static void Play(string url = "") { 
             if (url != "") {
+                do {
+                    try {
+                        InitUrl(url);
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine($"An error occured during initialization of player: {e.Message}");
+                    }
+                }
+                while (Agent == null);
                 InitUrl(url);
+                WindowRenderer.newIndex();
                 current.bufferedStream = new bufferedStream(current);
                 Stream piss = current.bufferedStream.getStream();
                 StreamMediaFoundationReader streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
