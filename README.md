@@ -32,3 +32,6 @@ Head over to `OWStuff.cs` file and find the private `KeyMap` dictionary (should 
 - [ ] During binary conversion in workshop code, content's length is set to value a workshop variable can hold max. Resulting in infinite playtime.
 - [ ] During buffering, a race condition arises so a considerable portion of content gets skipped (using multi threading might fix this) (NEEDS TESTING)
 - [ ] Some content's length might be less than needed to input a complete array of music infos. (Not selecting those videos for input or not pussying out when sending input might fix this issue)
+
+# TODO
+- [ ] Ditch primary fire/secondary fire input style and find some way to move cursor in-game to send ASCII character value
