@@ -40,7 +40,10 @@ namespace _TielJ {
                         case inputState.hostage:
                             int winner = getVoteResult(screenshot);
                             //read the winner song and play it
-                            if (winner == -69) throw new Exception("Unable to recognize vote winner. You may need to update color definitions");
+                            if (winner == -69){
+                                Console.WriteLine("Unable to recognize vote winner. You may need to update color definitions");
+                                break;
+                            }
                             Player.Player.Play(Player.Player.GetMusicUrl(winner)); //I think I had a stroke
                             KeyManager.SendKey(GetGameKey(gameKeys.Ultimate));
                             break;
@@ -75,6 +78,7 @@ namespace _TielJ {
                             break;//I don't know what to do with these informations
                     }
                 }
+                screenshot.Dispose();
                 Player.Player.Tick();
                 WindowRenderer.Render();
                 Thread.Sleep(1000);

@@ -18,14 +18,7 @@ namespace _TielJ.Player {
             { "youtube.com",typeof(youtube) }
         };
 
-        public static WaveOut WaveOut {
-            private set {
-                WaveOut = value;
-            }
-            get {
-                return WaveOut;
-            }
-        }
+        public static WaveOut WaveOut;
         static BaseClass Agent;
         static audioInfo current;
 
@@ -63,9 +56,22 @@ namespace _TielJ.Player {
             Match sitename = Regex.Match(url, @"\.((.*?)\..*?)/");
             if (!supportedSites.ContainsKey(sitename.Groups[1].Value)) throw new NotImplementedException($"TielJ does not support this website yet! {sitename.Groups[2].Value}");
             Agent = (BaseClass)Activator.CreateInstance(supportedSites[sitename.Groups[1].Value]);
-            Agent.Initialize(url);
+            bool initialize = false;
+            do
+            {
+                try
+                {
+                    Agent.Initialize(url);
+                    initialize = true;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"An error occured during initialization {e.Message}");
+                }
+            } while (initialize == false);
             current = Agent.getAudioInfo();
         }
+        public static StreamMediaFoundationReader streamRead;
         public static void Play(string url = "") { 
             if (url != "") {
                 do {
@@ -81,19 +87,24 @@ namespace _TielJ.Player {
                 WindowRenderer.newIndex();
                 current.bufferedStream = new bufferedStream(current);
                 Stream piss = current.bufferedStream.getStream();
-                StreamMediaFoundationReader streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
+                streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
                 WaveOut.Init(streamRead);
+                
             }
             WaveOut.Play();
         }
 
         public static void Tick() {
-            if(WaveOut.PlaybackState == PlaybackState.Playing) {
-                seconds++;
-                if (seconds % 30 > 20) {
-                    current.bufferedStream.readToStream();
+
+                if (WaveOut.PlaybackState == PlaybackState.Playing)
+                {
+                    seconds++;
+                    if (seconds % 30 > 20)
+                    {
+                        //current.bufferedStream.readToStream(); //you do the multithread buffering yet you still call this???
+                    }
                 }
-            }
+            
         }
 
         static void Pause() {

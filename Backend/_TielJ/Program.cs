@@ -23,8 +23,10 @@ namespace _TielJ {
                 }
             }
             Console.Write(']');*/
-            Console.WriteLine("TielJ will continue execution in 10 seconds");
-            Thread.Sleep(10000);
+            Console.WriteLine("TielJ will continue execution in 3 seconds");
+            Thread.Sleep(3000);
+            //Tests.PlayerTest();
+
             new TielJ(args[0]);
             Console.ReadKey();
         }

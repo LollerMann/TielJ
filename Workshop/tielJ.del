@@ -23,10 +23,10 @@ globalvar define  inworldindex =0;
 playervar define  worldselectionindex = 0;
 
 playervar define votingavailableHUDtext;
-playervar define votingavailable = False();
+globalvar define votingavailable = False();
 globalvar define votewinnerindex = 0;
 
-globalvar define currentlyplaying = "";
+globalvar define currentlyplaying = "Not playing anything right now";
 globalvar define playing = False();
 globalvar define initialsonglen = 0; //avoid division by zero
 globalvar define songlen = 0;
@@ -222,6 +222,7 @@ if(IsButtonHeld(EventPlayer(), Button.Ultimate))
                  }
                 else{
                     ChangeState(HostPlayer(),inputState.back);
+                    votingavailable = True();
                 } 
             }
         }
@@ -229,7 +230,7 @@ if(IsButtonHeld(EventPlayer(), Button.Ultimate))
             songname = musicArray[votewinnerindex].name;
             songlen = musicArray[votewinnerindex].length;
             initialsonglen = songlen;
-            currentlyplaying = <"<0>\n<1>",songname,songlen>;
+            //currentlyplaying = <"<0>\n<1>",songname,songlen>;
             playing = True();
             musicArray = EmptyArray();
             ChangeState(EventPlayer(), inputState.back);
@@ -268,26 +269,27 @@ Event.OngoingPlayer
 if(EventPlayer() != HostPlayer())
 if(IsButtonHeld(EventPlayer(),Button.Interact))
 if(IsButtonHeld(EventPlayer(),Button.Crouch))
-if(EventPlayer().votingavailable)
+if(votingavailable)
 {
     CreateHudText(EventPlayer(),EventPlayer().worldselectionindex,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
     RPI(EventPlayer(),False());
     ChangeState(EventPlayer(),inputState.songname);
 }
 
-rule: "Show voting status"
+rule: "Show voting status | Unavailable"
 Event.OngoingPlayer
-if(CountOf(musicArray) == 0 || CountOf(musicArray) == 3)
+if(!votingavailable)
 {
-    if(EventPlayer().votingavailableHUDtext != null) DestroyInWorldText(EventPlayer().votingavailableHUDtext);
-    if(CountOf(musicArray) == 0){
-        CreateHudText(EventPlayer(),"Voting Unavailable",Null(),Null(),Location.Right,1,Color.Red,Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways);
-        EventPlayer().votingavailable = False();
-    }
-    else {
-        EventPlayer().votingavailable = True();
-        CreateHudText(EventPlayer(),<"Vote Now! <0> + <1>","FIXME, CROUCH BINDING ICON","FIXME, INTERACT BINDING ICON">,Null(),Null(),Location.Right,1,Color.Yellow,Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
-    }
+    if(EventPlayer().votingavailableHUDtext != null) DestroyHudText(EventPlayer().votingavailableHUDtext);
+    CreateHudText(EventPlayer(),"Voting Unavailable",Null(),Null(),Location.Right,1,Color.Red,Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways);
+    EventPlayer().votingavailableHUDtext = LastTextID();
+}
+rule: "Show voting status | available"
+Event.OngoingPlayer
+if(votingavailable)
+{
+    if(EventPlayer().votingavailableHUDtext != null) DestroyHudText(EventPlayer().votingavailableHUDtext);
+    CreateHudText(EventPlayer(),<"Vote Now! <0> + <1>", InputBindingString(Button.Crouch),InputBindingString(Button.Interact)>,Null(),Null(),Location.Right,1,Color.Yellow,Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
     EventPlayer().votingavailableHUDtext = LastTextID();
 }
 /*rule: "showpos"
@@ -304,7 +306,7 @@ Event.OngoingPlayer
 if(EventPlayer() == HostPlayer())
 if(EventPlayer().state == inputState.back)
 if(IsButtonHeld(EventPlayer(), Button.Crouch) && IsButtonHeld(EventPlayer(), Button.Interact))
-if(songlen > initialsonglen/2 + 12)// twelve seconds to vote for host
+if(songlen > 60)// you have 60 seconds
 {
     RPI(EventPlayer(),True());
 }
@@ -314,7 +316,7 @@ if(playing)
 {
     while(playing){
         songlen--;
-        currentlyplaying = <"<0>   <1>:<2>",songname,RoundToInteger(songlen/60,Rounding.Down),songlen%60>
+        currentlyplaying = <"<0>   <1>:<2>", songname, RoundToInteger(songlen/60,Rounding.Down), songlen%60>;
         Wait(1);
     }
 }
@@ -336,10 +338,12 @@ if(EventPlayer() == HostPlayer()) //run only on host
                 ChangeState(HostPlayer(),inputState.songname);
             }
         }
-        if(songlen < initialsonglen /1.3 && CountOf(musicArray) != 3 && SessionInitialized){
+        if(songlen < initialsonglen && CountOf(musicArray) != 3 && SessionInitialized){
             if(HostPlayer().state != inputState.songlength && HostPlayer().state != inputState.songname && HostPlayer().state != inputState.teleported){ //TJ is doing nothing
                 //if(XOf(PositionOf(HostPlayer())) != 0 && YOf(PositionOf(HostPlayer())) != 0 && ZOf(PositionOf(HostPlayer())) != 0){ //Host Didn't spawn yet
                     if(HostPlayer().state != inputState.back) ChangeState(HostPlayer(),inputState.back);
+                    musicArray = EmptyArray();
+                    votingavailable = False();
                     BigMessage(HostPlayer(), "Input sequence will begin in 5 seconds...");
                     Wait(5);
                     RPI(HostPlayer(),False());

@@ -71,8 +71,10 @@ namespace _TielJ {
             BirdSays();
             Console.Write("\n");
             if(Player.Player.MusicInfo.artist != null) {
+                int elapsed = 0;
+                if (Player.Player.streamRead != null) elapsed = (int)Player.Player.streamRead.CurrentTime.TotalSeconds;
                 Console.WriteLine($"Currently Playing: {Player.Player.MusicInfo.name}");
-                int playedpercent = (int)((int)(Player.Player.seconds * 82 / Player.Player.MusicInfo.length));
+                int playedpercent = (int)((int)(elapsed * 82 / Player.Player.MusicInfo.length));
                 Console.WriteLine($"[{new String('#',playedpercent)}{new String(' ', 82 - playedpercent)}]");
                 Console.Write("\n");
                 Console.WriteLine($"Player status: {Enum.GetName(typeof(NAudio.Wave.PlaybackState),Player.Player.WaveOut.PlaybackState)}");

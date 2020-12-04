@@ -19,14 +19,8 @@ namespace _TielJ.Player.Crawln_Grab {
         bool abortnite = false;
         bool paused = false;
 
-        public int ToBeBuffered {
-            private set {
-                ToBeBuffered = value;
-            }
-            get {
-                return ToBeBuffered;
-            }
-        }
+        public int ToBeBuffered;
+
         public bufferedStream(audioInfo info) {
             audioInfo = info;
             stream = audioInfo.serverAudioStream;
@@ -39,21 +33,36 @@ namespace _TielJ.Player.Crawln_Grab {
             audioInfo.serverAudioStream.Close();
             abortnite = true;
         }
-
+        private static bool jumpstart = false;
+        private int stinker;
         public void readToStream() {
-            while (!abortnite && bufferedcount != 0) {
+            while (!abortnite && bufferedcount != 0)
+            {
                 int prevbufcount = totalbuffered;
-                ToBeBuffered = 20 * (this.audioInfo.bitrate / 8) + prevbufcount;
-                while (stream.CanRead && bufferedcount != 0 && !abortnite && totalbuffered < ToBeBuffered && !paused) {
-                    Console.Write($"Caching {totalbuffered}/{ToBeBuffered}\r");
-                    byte[] buf = new byte[1024];
-                    bufferedcount = stream.Read(buf, 0, 1024);
-                    memstr.Position = memstrpos;
-                    totalbuffered += bufferedcount;
-                    memstr.Write(buf, 0, bufferedcount);
-                    memstrpos = memstr.Position;
+                ToBeBuffered = 20 * (this.audioInfo.bitrate / 8) + prevbufcount + 1000;
+                try
+                {
+                    while (stream.CanRead && bufferedcount != 0 && !abortnite && totalbuffered < ToBeBuffered && !paused)
+                    {
+                        Console.Write($"Caching {totalbuffered}/{ToBeBuffered}\r");
+                        byte[] buf = new byte[1024];
+                        bufferedcount = stream.Read(buf, 0, 1024);
+                        memstr.Position = memstrpos;
+                        totalbuffered += bufferedcount;
+                        memstr.Write(buf, 0, bufferedcount);
+                        memstrpos = memstr.Position;
+                    }
                 }
-                Thread.Sleep(100000);
+                catch (System.IO.IOException)
+                {
+                    stinker++;
+                    Console.WriteLine("Remote closed the connection");
+                    Thread.Sleep(2000);//delay 2 seconds
+                    if (stinker > 5) abortnite = true;
+                    else readToStream();
+                }
+                if (jumpstart) break;
+                Thread.Sleep(10000);
             }
         }
 
@@ -62,6 +71,10 @@ namespace _TielJ.Player.Crawln_Grab {
             this.memstr.SetLength(audioInfo.contentLength);
             Fill(memstr, 255, (int)audioInfo.contentLength);
             memstr.Position = 0;
+            stinker = 0;
+            jumpstart = true;
+            readToStream(); //Jumpstart it 
+            jumpstart = false;
             BufferThread = new Thread(new ThreadStart(readToStream));
 	    BufferThread.Start();
             return memstr;

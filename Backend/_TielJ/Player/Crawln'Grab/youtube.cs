@@ -30,8 +30,8 @@ namespace _TielJ.Player.Crawln_Grab {
         musicInfo coolerme = new musicInfo() { url = "uninitialized"};
         musicInfo[] musicInfos = new musicInfo[3];
         WebResponse resp;
-        void BaseClass.Initialize(string url) {
-            WebRequest request = WebRequest.Create(url);
+        void BaseClass.Initialize(string _url) {
+            WebRequest request = WebRequest.Create(_url);
             HttpWebRequest webRequest = (HttpWebRequest)request;
             webRequest.UserAgent = values.userAgent;
             WebResponse response = webRequest.GetResponse();
@@ -39,7 +39,7 @@ namespace _TielJ.Player.Crawln_Grab {
 
             // Get the stream containing content returned by the server.
             // The using block ensures the stream is automatically closed.
-            using (Stream dataStream = response.GetResponseStream()) {
+            using (Stream dataStream = response.GetR esponseStream()) {
                 // Open the stream using a StreamReader for easy access.
                 StreamReader reader = new StreamReader(dataStream);
                 // Read the content.
@@ -65,7 +65,12 @@ namespace _TielJ.Player.Crawln_Grab {
                 dynamic stuff = JObject.Parse(pissoff);
                 response.Close();
 
-                dynamic chosenone = stuff["player_response"]["streamingData"]["adaptiveFormats"].Last;
+                dynamic chosenone = "stinker";
+                foreach(dynamic format in stuff["player_response"]["streamingData"]["adaptiveFormats"])
+                {
+                    if (format["mimeType"].Value.StartsWith("audio") && format["audioQuality"] == "AUDIO_QUALITY_MEDIUM") chosenone = format; //I don't know what it is but evem though it seems that I select the same codec here I still get unsupported url format exception sometimes. I don't know what causes it
+                }
+                if (chosenone.GetType().ToString() == "System.String") throw new Exception("Couldn't find any suitable format");
                 int formatid = chosenone["itag"];
                 //this.contentlength = chosenone["contentLength"];
                 int bitrate = chosenone["bitrate"];
@@ -85,14 +90,14 @@ namespace _TielJ.Player.Crawln_Grab {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
                 startInfo.FileName = "cmd.exe";
-                startInfo.Arguments = $"/C youtube-dl --get-url --print-traffic -f {formatid} {url}";
+                startInfo.Arguments = $"/C youtube-dl --get-url --print-traffic -f {formatid} {_url}";
                 process.StartInfo = startInfo;
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
                 process.Start();
                 process.WaitForExit();
                 string hsc = "header: Set-Cookie:";
-                string url = "crikey"
+                string url = "crikey";
                 WebRequest req;
                 string youtubedlres = process.StandardOutput.ReadToEnd();
                 foreach (string line in youtubedlres.Split('\n')) {
