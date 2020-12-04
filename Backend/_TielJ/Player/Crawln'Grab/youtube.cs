@@ -39,7 +39,7 @@ namespace _TielJ.Player.Crawln_Grab {
 
             // Get the stream containing content returned by the server.
             // The using block ensures the stream is automatically closed.
-            using (Stream dataStream = response.GetR esponseStream()) {
+            using (Stream dataStream = response.GetResponseStream()) {
                 // Open the stream using a StreamReader for easy access.
                 StreamReader reader = new StreamReader(dataStream);
                 // Read the content.
