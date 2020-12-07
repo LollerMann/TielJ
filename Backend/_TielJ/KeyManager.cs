@@ -10,6 +10,15 @@ using static _TielJ.OWStuff;
 
 namespace _TielJ {
     public static class KeyManager {
+        [DllImport("MARSELO.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern void MoveVader(int x, int y);
+
+        [DllImport("MARSELO.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern void ToggleMouseAccel();
+        [DllImport("MARSELO.dll", CallingConvention = CallingConvention.Cdecl)]
+
+        static extern bool GetMouseAccel();
+
         [DllImport("user32.dll", SetLastError = true)]
         static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
         //https://ourcodeworld.com/articles/read/520/simulating-keypress-in-the-right-way-using-inputsimulator-with-csharp-in-winforms
@@ -27,6 +36,12 @@ namespace _TielJ {
             MiddleClick
         }
         private static pixPos midPoint = new pixPos() { x= -3};
+
+        private static int whatpercentof(double i1, double i2) { return (int)((100 * i2) / i1); }
+        private static double magiknumber = 47.4;
+
+        private static bool maccelon = GetMouseAccel();
+
         public static void SendMouseEvent(IntPtr windowHandle, mousevent mevent) {
             if(midPoint.x == -3)midPoint = Screen.getMiddle(windowHandle);
             MouseEventFlags upEvent, downEvent;
@@ -51,7 +66,12 @@ namespace _TielJ {
             MouseEvent(upEvent, midPoint.x, midPoint.y);
         }
 
-        public static void SendInput(List<byte[]> bytelist,IntPtr winHandle) {
+        public static void SendInput(string s) {
+            Console.WriteLine($"Sending: {s}");
+            if (MouseSens == -60) SendBinaryInput(MakeItLeet(s), TielJ.OverwatchHandle);
+            else SendMouseMoveInput(s);
+        }
+        public static void SendBinaryInput(List<byte[]> bytelist,IntPtr winHandle) {
             foreach(byte[] bytearr in bytelist) {
                 foreach(byte coolbyte in bytearr) {
                     if (coolbyte == 0) SendMouseEvent(winHandle, mousevent.LeftClick);
@@ -61,6 +81,25 @@ namespace _TielJ {
                 SendKey(GetGameKey(gameKeys.Interact));
                 Thread.Sleep(100);
             }
+        }
+
+        public static void SendMEvent(mousevent mevent, IntPtr winHandle) {
+            SendMouseEvent(winHandle, mevent);
+            Thread.Sleep(100);
+        }
+
+        private static void SendMouseMoveInput(string s) {
+            if (maccelon) {
+                ToggleMouseAccel();
+            }
+            foreach (char ch in s) {
+                MoveVader(0, whatpercentof(magiknumber, (int)ch));//Move send 128 input
+                Thread.Sleep(200);
+                SendKey(GetGameKey(gameKeys.Interact));
+                Thread.Sleep(200);
+            }
+
+            if (maccelon) ToggleMouseAccel();
         }
         //I yanked this from somewhere but I forgot where it was.Props to whoever made this and sorry.
         [Flags]
@@ -77,7 +116,7 @@ namespace _TielJ {
 
         [DllImport("user32.dll", EntryPoint = "SetCursorPos")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetCursorPos(int x, int y);
+        public static extern bool SetCursorPos(int x, int y);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -94,7 +133,7 @@ namespace _TielJ {
             SetCursorPos(point.X, point.Y);
         }
 
-        private static MousePoint GetCursorPosition() {
+        public static MousePoint GetCursorPosition() {
             MousePoint currentMousePoint;
             var gotPoint = GetCursorPos(out currentMousePoint);
             if (!gotPoint) { currentMousePoint = new MousePoint(0, 0); }

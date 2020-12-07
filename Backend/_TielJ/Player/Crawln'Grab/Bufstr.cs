@@ -62,7 +62,7 @@ namespace _TielJ.Player.Crawln_Grab {
                     else readToStream();
                 }
                 if (jumpstart) break;
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
             }
         }
 

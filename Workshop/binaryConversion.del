@@ -9,7 +9,6 @@ void DecodeString(define array){ //input will be an array of binary numbers enca
             define iter = i - iber;
             calc += array[iter]*RaiseToPower(2,iber);
             if(iber == 7) {
-                decodedstring = <"<0><1>",decodedstring,ValueInArray(asciiChars,calc)>;
                 calc = 0;
             }
         }
@@ -26,9 +25,8 @@ void DecodeNumber(define array){ //input will be an array of binary numbers enca
                 define iter = i - iber;
                 calc += array[iter]*RaiseToPower(2,iber);
                 if(iber == 7) {
-                    define power = RaiseToPower(10,CountOf(array)/8 - 1 - digit);
+                    define power = RaiseToPower(10,CountOf(array)/8 - 1 - digit);//Reverse
                     decodednum += asciiChars[calc] * power;
-                    SmallMessage(HostPlayer(),<"Power is: <0>, read ascii char is ",power>);
                     calc = 0;
                     digit++;
                 }
@@ -36,3 +34,51 @@ void DecodeNumber(define array){ //input will be an array of binary numbers enca
         }
     currentdecoded = decodednum;
 }
+
+void DecodeSens(define array){
+    define decodednum = 0;
+    currentdecoded = 0;
+    define calc = 0;
+    define digit =0;
+    for (define i = CountOf(array) -9; i >= -1; i-=8) {
+        for(define iber = 8; iber > 0;iber--){
+            define iter = i + iber;
+            calc += array[iter]*RaiseToPower(2,8-iber);
+            if(iber == 1) {
+                define power = RaiseToPower(10,digit - 2);//normal
+                decodednum += asciiChars[calc] * power;
+                calc = 0;
+                digit++;
+                }
+            }
+        }
+    currentdecoded = decodednum;
+    SmallMessage(HostPlayer(),<"Decoded Sensitivy value: <0>", decodednum>);
+}
+
+void DecodeWeed(define array, define isnumber){
+    define swag;
+    if(isnumber) swag = 0;
+    else swag = "";
+    define diggity = CountOf(array) -1;
+    define wow = EmptyArray();
+    for(define goshdarn =0; goshdarn<CountOf(array);goshdarn++){
+        if(isnumber){
+            define pooper = RaiseToPower(10, diggity - goshdarn);
+            define epicnumber = (asciiChars[array[goshdarn]] * pooper);
+            swag += epicnumber; 
+            wow = Append(wow,epicnumber);
+            wow = Append(wow,pooper);
+        } 
+        else swag = <"<0><1>",swag,asciiChars[array[goshdarn]]>;
+        /*if(isnumber){
+            wow = Append(wow,swag);   //    2   7   16
+            wow = Append(wow,goshdarn);//   0   1   2
+            wow = Append(wow,diggity);//    2   2   2
+        }*/
+    }
+    SmallMessage(AllPlayers(),<"Decoded: <0>",swag>);
+
+    currentdecoded = swag;
+}
+

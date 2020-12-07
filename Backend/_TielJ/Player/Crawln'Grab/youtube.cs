@@ -48,7 +48,7 @@ namespace _TielJ.Player.Crawln_Grab {
                 for (int i = 0; i < 3; i++) {
                     GroupCollection g = matches[i].Groups;
                     musicInfos[i] = new musicInfo {
-                        name = g[1].Value.Length > 15 ? g[1].Value.Substring(0,14) : g[1].Value,
+                        name = OWStuff.MouseSens != -60 ? g[1].Value : (g[1].Value.Length > 15 ? g[1].Value.Substring(0,14) : g[1].Value),
                         url = "https://www.youtube.com" + g[4].Value,
                         length = (uint)((Convert.ToInt32(g[2].Value) * 60) + Convert.ToInt32(g[3].Value)),
                         artist = g[5].Value.EndsWith(" - Topic") ? g[5].Value.Substring(0, g[5].Value.Length - " - Topic".Length) : g[5].Value,
@@ -56,17 +56,36 @@ namespace _TielJ.Player.Crawln_Grab {
                     };
 
                 }
-                string pissoff = Regex.Match(responseFromServer, @"{""player_response.*?}}}]}""}").Captures[0].Value;
+                Match meeem = Regex.Match(responseFromServer, @"{""player_response.*?}}}]}""}");
+                bool coolerResponse = false;
+                if (!meeem.Success) {
+                    meeem = Regex.Match(responseFromServer, @"{""responseContext.*?}}}]}");
+                    coolerResponse = true;
+                } 
+                string pissoff = meeem.Captures[0].Value;
                 pissoff = pissoff.Replace(@"}]}""}", @"}]}}"); //unstring value
-                pissoff = pissoff.Replace(@"{""player_response"":""{\""", @"{""player_response"":{\"""); //unstring value
-                pissoff = pissoff.Replace(@"\""", @"""");
-                pissoff = pissoff.Replace(@"\\", @"\");
-                pissoff = pissoff.Replace(@"\/", @"/");
-                dynamic stuff = JObject.Parse(pissoff);
+                if (!coolerResponse) {
+                    pissoff = pissoff.Replace(@"{""player_response"":""{\""", @"{""player_response"":{\"""); //unstring value
+                    //pissoff = pissoff.Replace(@"{""responseContext"":""{\""", @"{""responseContext"":{\"""); //unstring value
+                    pissoff = pissoff.Replace(@"\""", @"""");
+                    pissoff = pissoff.Replace(@"\\", @"\");
+                    pissoff = pissoff.Replace(@"\/", @"/");
+                }
+                pissoff = System.Uri.UnescapeDataString(pissoff);
+                dynamic stuff = "I'm stuff";
+                try {
+                    stuff = JObject.Parse(pissoff);
+                } catch (Exception ex) {
+                    using (FileStream fs = new FileStream("I did a fucking.whoopsie", FileMode.Create)) {
+                        byte[] bruhfunny = Encoding.UTF8.GetBytes(pissoff);
+                        fs.Write(bruhfunny, 0, bruhfunny.Length);
+                    }
+                    throw new Exception($"Error during parsing the player_response {ex.Message}");
+                }
                 response.Close();
 
                 dynamic chosenone = "stinker";
-                foreach(dynamic format in stuff["player_response"]["streamingData"]["adaptiveFormats"])
+                foreach(dynamic format in coolerResponse ? stuff["streamingData"]["adaptiveFormats"] : stuff["player_response"]["streamingData"]["adaptiveFormats"])
                 {
                     if (format["mimeType"].Value.StartsWith("audio") && format["audioQuality"] == "AUDIO_QUALITY_MEDIUM") chosenone = format; //I don't know what it is but evem though it seems that I select the same codec here I still get unsupported url format exception sometimes. I don't know what causes it
                 }
@@ -79,7 +98,7 @@ namespace _TielJ.Player.Crawln_Grab {
                 Match matché = Regex.Match(responseFromServer, @"og:title"" content=""(.*?)""[\s\S]*?itemprop=""author""[\s\S]*?""name"" content=""(.*?)""");
                 GroupCollection gc = matché.Groups;
                 coolerme = new musicInfo {
-                    name = gc[1].Value.Length > 15 ? gc[1].Value.Substring(0,14) : gc[1].Value,
+                    name = OWStuff.MouseSens != -60 ? gc[1].Value : (gc[1].Value.Length > 15 ? gc[1].Value.Substring(0,14) : gc[1].Value),
                     //url = "https://www.youtube.com" + g[4].Value,
                     length = (uint)approxlen,
                     artist = gc[2].Value.EndsWith(" - Topic") ? gc[2].Value.Substring(0, gc[2].Value.Length - " - Topic".Length) : gc[2].Value,

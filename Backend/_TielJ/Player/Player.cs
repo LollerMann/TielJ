@@ -74,22 +74,22 @@ namespace _TielJ.Player {
         public static StreamMediaFoundationReader streamRead;
         public static void Play(string url = "") { 
             if (url != "") {
+                bool initialized = false;
                 do {
                     try {
                         InitUrl(url);
+                        WindowRenderer.newIndex();
+                        current.bufferedStream = new bufferedStream(current);
+                        Stream piss = current.bufferedStream.getStream();
+                        streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
+                        WaveOut.Init(streamRead);
+                        initialized = true;
                     }
                     catch (Exception e) {
                         Console.WriteLine($"An error occured during initialization of player: {e.Message}");
                     }
                 }
-                while (Agent == null);
-                InitUrl(url);
-                WindowRenderer.newIndex();
-                current.bufferedStream = new bufferedStream(current);
-                Stream piss = current.bufferedStream.getStream();
-                streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
-                WaveOut.Init(streamRead);
-                
+                while (!initialized);
             }
             WaveOut.Play();
         }

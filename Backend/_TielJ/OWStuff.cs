@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 namespace _TielJ {
     public static class OWStuff {
+        public static short MouseSens = -60;
         public enum e_HUDLoc {
             topLeft,
             middle,
@@ -107,6 +108,8 @@ namespace _TielJ {
             songlength,
             hostage,
             idle,
+            inputtype,
+            inputsens,
             unrecognized
         };
         private static colornames readColorFrom(Bitmap screen,e_HUDLoc position) {
@@ -136,6 +139,10 @@ namespace _TielJ {
                         else return inputState.idle;
                     }
                     else return inputState.unrecognized;
+                case colornames.Yellow:
+                    return inputState.inputtype;
+                case colornames.Lime:
+                    return inputState.inputsens;
                 case colornames.Blu:
                     if (location == e_HUDLoc.topLeft) return inputState.songlength;
                     else return inputState.hostage;

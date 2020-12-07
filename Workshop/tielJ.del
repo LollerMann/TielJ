@@ -39,6 +39,14 @@ globalvar define BinaryBuildArray = EmptyArray();
 globalvar define decodedsongname;
 
 globalvar define SessionInitialized = False();
+globalvar define InputType = 21;
+
+globalvar define magicNumber = 0;
+
+globalvar define lewinner = 0;
+globalvar define votearr = EmptyArray();
+
+globalvar define inputindex = 0;
 
 void RPI(define player, define ishostVote) "Ready player for input, or raspberry pi depending on purview of your conondurums of philosophy"
 {   
@@ -55,7 +63,8 @@ void RPI(define player, define ishostVote) "Ready player for input, or raspberry
     else{
         //CreateHudText(player, player.worldselectionindex, Null(), Null(), Location.Right, 0, Color.Green, Color.Green,Color.Green,HudTextRev.String,Spectators.VisibleAlways); //We are teleported but don't just start yet      
         ChangeState(player,inputState.hostvote);
-    } 
+    }
+    SetFacing(player,Vector(0,0,0));
     CreateInWorldText(AllPlayers(), "IN INPUT", EyePosition(player), 5,Clipping.ClipAgainstSurfaces,InworldTextRev.None,Color.Purple, Spectators.VisibleAlways);
     player.ininputTextRev = LastTextID();
 }
@@ -66,7 +75,7 @@ void SMC(define player) "Spawn Music Circle"
     player.p_py = YOf(PositionOf(player));
     player.p_pz = ZOf(PositionOf(player));
     player.p_iter = 0;
-    for (define i = 120 *-1 ; i < 360; i+= 120) //it spawns a null character idk why so I put two unneccessary characters at both ends and provide untrue length, if someone can do it properly I'll appreciate your help.
+    for (define i = 0 ; i < 360; i+= 120) //it spawns a null character idk why so I put two unneccessary characters at both ends and provide untrue length, if someone can do it properly I'll appreciate your help.
     {
         define xpos = player.p_px + lettercircleR * CosineFromDegrees(i);
         define zpos = player.p_pz + lettercircleR * SineFromDegrees(i);
@@ -80,7 +89,13 @@ void ChangeState(define player, inputState stt) "Change state" // #### Text is h
     player.state = stt;
     
     if(player.inputHudRef != Null())DestroyHudText(HostPlayer().inputHudRef);
-    if(stt == inputState.sessioninit){
+    if(player.state == inputState.inputSens){
+        CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.LimeGreen, Color.LimeGreen,Color.LimeGreen,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet
+    }
+    else if(player.state == inputState.inputType){
+        CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Yellow, Color.Yellow,Color.Yellow ,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet
+    }
+    else if(stt == inputState.sessioninit){
         player.state = stt;
     }
     else if(player.state == inputState.teleported){
@@ -99,6 +114,7 @@ void ChangeState(define player, inputState stt) "Change state" // #### Text is h
     else if(player.state == inputState.songname || player.state == inputState.hostvote) {
         SetFacing(player,Vector(0,0,0));
         if(player == HostPlayer() && player.state != inputState.hostvote){
+            SetAimSpeed(HostPlayer(),magicNumber);
             HostPlayer().worldselectionindex = 0;
             CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Green, Color.Green,Color.Green,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet      
         } 
@@ -125,6 +141,7 @@ void ChangeState(define player, inputState stt) "Change state" // #### Text is h
             //inworldtextamount = 0;
             //inworldOptionArray = EmptyArray();
             DestroyHudText(HostPlayer().letmesee);
+            SetAimSpeed(HostPlayer(),100);
             //DestroyInWorldText(ininputTextRev);
             CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Orange, Color.Orange,Color.Orange,HudTextRev.None,Spectators.VisibleAlways);
         }
@@ -148,35 +165,48 @@ void ClearInWorldOptions(define player){
 }
 rule: "Handle input in menu | switch to left item"
 Event.OngoingPlayer
-if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostvote)
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostvote || EventPlayer().state == inputState.inputType || EventPlayer().state == inputState.inputSens)
 if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
 {
-    define percentage;
     if(EventPlayer() == HostPlayer() && EventPlayer().state != inputState.hostvote){
-        BinaryBuildArray = Append(BinaryBuildArray,0);
+        if(EventPlayer().state == inputState.inputType){
+            InputType = 0;
+            ChangeState(EventPlayer(),inputState.back);
+        }
+        else if (InputType == 0 || EventPlayer().state == inputState.inputSens){
+            BinaryBuildArray = Append(BinaryBuildArray,0);
+            }
     }
     else {
-        percentage = 120;
-        EventPlayer().worldselectionindex--;
-        if(EventPlayer().worldselectionindex <0) EventPlayer().worldselectionindex = 2;
-        SetFacing(EventPlayer(),Vector(CosineFromDegrees(EventPlayer().worldselectionindex * percentage),0, SineFromDegrees((EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // no jeremy car gad bas for helf
+        define percentage;
+            percentage = 120;
+            EventPlayer().worldselectionindex--;
+            if(EventPlayer().worldselectionindex <0) EventPlayer().worldselectionindex = 2;
+            SetFacing(EventPlayer(),Vector(CosineFromDegrees(EventPlayer().worldselectionindex * percentage),0, SineFromDegrees((EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // no jeremy car gad bas for helf
     }
+    
 }
 
 rule: "Handle input in menu | switch to right item"
 Event.OngoingPlayer
-if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostvote)
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostvote || EventPlayer().state == inputState.inputType ||EventPlayer().state == inputState.inputSens)
 if(IsButtonHeld(EventPlayer(), Button.SecondaryFire))
 {
-    define percentage;
     if(EventPlayer() == HostPlayer() && EventPlayer().state != inputState.hostvote){
-        BinaryBuildArray = Append(BinaryBuildArray,1);
+        if(EventPlayer().state == inputState.inputType){
+            InputType = 1;
+            ChangeState(EventPlayer(),inputState.back);
+        }
+        else if (InputType == 0 || EventPlayer().state == inputState.inputSens) {
+            BinaryBuildArray = Append(BinaryBuildArray,1);
+        }
     }
     else {
-        percentage = 120;
-        EventPlayer().worldselectionindex++;
-        if(EventPlayer().worldselectionindex > 2) EventPlayer().worldselectionindex = 0;
-        SetFacing(EventPlayer(),Vector(CosineFromDegrees(EventPlayer().worldselectionindex * percentage),0, SineFromDegrees((EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // shut mouth hammock
+        define percentage;
+            percentage = 120;
+            EventPlayer().worldselectionindex++;
+            if(EventPlayer().worldselectionindex > 2) EventPlayer().worldselectionindex = 0;
+            SetFacing(EventPlayer(),Vector(CosineFromDegrees(EventPlayer().worldselectionindex * percentage),0, SineFromDegrees((EventPlayer().worldselectionindex) * percentage)),Relative.ToWorld); // shut mouth hammock
     }
 }
 
@@ -186,27 +216,49 @@ if(EventPlayer() == HostPlayer())
 if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength)
 if(IsButtonHeld(EventPlayer(), Button.Interact))
 {
-    sNameBuildArray = Append(sNameBuildArray,BinaryBuildArray);
-    BinaryBuildArray = EmptyArray();
+    if(InputType == 0) {
+        sNameBuildArray = Append(sNameBuildArray,BinaryBuildArray);
+        BinaryBuildArray = EmptyArray();
+    }
+    else{
+        sNameBuildArray = Append(sNameBuildArray,VerticalFacingAngleOf(HostPlayer()) * 100);
+        SetFacing(HostPlayer(),Vector(0,0,0),Relative.ToPlayer);
+    } 
 }
 
 rule: "Handle input in menu | Confirm Array | Acknowledge Hostage Situation | Choose entry"
 Event.OngoingPlayer
 //if(EventPlayer() == HostPlayer())
-if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostage || EventPlayer().state == inputState.hostvote)
+if(EventPlayer().state == inputState.songname || EventPlayer().state == inputState.songlength || EventPlayer().state == inputState.hostage || EventPlayer().state == inputState.hostvote || EventPlayer().state == inputState.inputSens)
 if(IsButtonHeld(EventPlayer(), Button.Ultimate))
 {
     if(EventPlayer() == HostPlayer() && EventPlayer().state != inputState.hostvote) {
-        BinaryBuildArray = EmptyArray();
-        if(HostPlayer().state == inputState.songname){
-            DecodeString(sNameBuildArray);
-            decodedsongname = currentdecoded;
+        if(HostPlayer().state == inputState.inputSens){
+            DecodeSens(BinaryBuildArray);
+            magicNumber = 72/currentdecoded;
+            SmallMessage(HostPlayer(),<"Calculated aim percentage: <0>",magicNumber>);
+            ChangeState(HostPlayer(),inputState.back);
+        }
+        else if(HostPlayer().state == inputState.songname){
+            if(InputType == 0){
+                DecodeString(sNameBuildArray);
+                decodedsongname = currentdecoded;
+            }
+            else {
+                DecodeWeed(sNameBuildArray,False());
+                decodedsongname = currentdecoded;
+            }
             if(!SessionInitialized) songname = decodedsongname;
             sNameBuildArray = EmptyArray();
             ChangeState(HostPlayer(),inputState.songlength);
         }
         else if (HostPlayer().state == inputState.songlength) {
-            DecodeNumber(sNameBuildArray);
+            if(InputType == 0){
+                DecodeNumber(sNameBuildArray);
+            }
+            else {
+                DecodeWeed(sNameBuildArray,True());
+            }
             if(!SessionInitialized){
                 songlen = currentdecoded;
                 initialsonglen = currentdecoded;
@@ -225,15 +277,18 @@ if(IsButtonHeld(EventPlayer(), Button.Ultimate))
                     votingavailable = True();
                 } 
             }
+            BinaryBuildArray = EmptyArray();
+            sNameBuildArray = EmptyArray();
+
         }
         else if(HostPlayer().state == inputState.hostage){
-            songname = musicArray[votewinnerindex].name;
-            songlen = musicArray[votewinnerindex].length;
-            initialsonglen = songlen;
             //currentlyplaying = <"<0>\n<1>",songname,songlen>;
             playing = True();
-            musicArray = EmptyArray();
+            musicArray = [];
             ChangeState(EventPlayer(), inputState.back);
+        }
+        else if(HostPlayer().state == inputState.inputType){
+            RPI(HostPlayer(),False());
         }
     }
     else {
@@ -258,7 +313,11 @@ if(IsGameInProgress() == True())
  
    ChangeState(EventPlayer(),inputState.back);
    EventPlayer().worldselectionindex = 0;
+   CreateHudText(EventPlayer(),"Your selection",Null(),worldselectionindex,Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   CreateHudText(EventPlayer(),"Length of musicarray",Null(),CountOf(musicArray),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   CreateHudText(EventPlayer(),"second element of musicarray",Null(),musicArray[1].name,Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
    //CreateHudText(HostPlayer(),state,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+   CreateHudText(EventPlayer(),VerticalFacingAngleOf(HostPlayer()), Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
    CreateHudText(EventPlayer(),currentlyplaying, Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
 
     
@@ -326,10 +385,20 @@ if(IsGameInProgress())
 if(EventPlayer() == HostPlayer()) //run only on host
 {
     while(IsGameInProgress()){
-        if(HostPlayer().state != inputState.songname && HostPlayer().state != inputState.songlength && !SessionInitialized){
+        if (InputType == 21 && HostPlayer().state != inputState.inputType && !SessionInitialized && IsAlive(HostPlayer())){
+            Wait(5);
+            SmallMessage(HostPlayer(),"Welcome To TielJ! Please file bug reports in github url.");
+            Wait(5);
+            SmallMessage(HostPlayer(),"Let's see which input type you chose");
+            RPI(HostPlayer(),False());
+            ChangeState(HostPlayer(),inputState.inputType);
+        }
+        else if(InputType == 1 && !SessionInitialized && HostPlayer().state != inputState.inputSens && HostPlayer().state != inputState.inputType &&IsAlive(HostPlayer()) && magicNumber == 0){
+            RPI(HostPlayer(),False());
+            ChangeState(HostPlayer(),inputState.inputSens);
+        }
+        else if(HostPlayer().state != inputState.songname && HostPlayer().state != inputState.songlength && HostPlayer().state != inputState.inputType &&HostPlayer().state != inputState.inputSens && !SessionInitialized){
             if(XOf(PositionOf(HostPlayer())) != 0 && YOf(PositionOf(HostPlayer())) != 0 && ZOf(PositionOf(HostPlayer())) != 0){
-                SmallMessage(HostPlayer(),"Welcome To TielJ! Please file bug reports in github url.");
-                Wait(5);
                 BigMessage(HostPlayer(),"TielJ will begin communicating with game in 10 Seconds");
                 SmallMessage(HostPlayer(),"Refrain from doing anything while TielJ does it's thing.");
                 Wait(10);
@@ -338,11 +407,12 @@ if(EventPlayer() == HostPlayer()) //run only on host
                 ChangeState(HostPlayer(),inputState.songname);
             }
         }
-        if(songlen < initialsonglen && CountOf(musicArray) != 3 && SessionInitialized){
+        else if(songlen < initialsonglen && CountOf(musicArray) != 3 && SessionInitialized){
             if(HostPlayer().state != inputState.songlength && HostPlayer().state != inputState.songname && HostPlayer().state != inputState.teleported){ //TJ is doing nothing
                 //if(XOf(PositionOf(HostPlayer())) != 0 && YOf(PositionOf(HostPlayer())) != 0 && ZOf(PositionOf(HostPlayer())) != 0){ //Host Didn't spawn yet
                     if(HostPlayer().state != inputState.back) ChangeState(HostPlayer(),inputState.back);
-                    musicArray = EmptyArray();
+                    musicArray = [];
+                    ChangeState(HostPlayer(),inputState.teleported);
                     votingavailable = False();
                     BigMessage(HostPlayer(), "Input sequence will begin in 5 seconds...");
                     Wait(5);
@@ -353,24 +423,26 @@ if(EventPlayer() == HostPlayer()) //run only on host
         }
         else if (songlen == 0 && HostPlayer().state !=inputState.hostage && SessionInitialized){
             playing = False();
-            define votearr = [0,0,0];
+            votearr = [0,0,0];
             for (define i = 0; i < CountOf(AllPlayers()); i++)
             {
                 if(AllPlayers()[i].state != inputState.back && AllPlayers()[i] !=HostPlayer())ChangeState(AllPlayers()[i],inputState.back);
                 votearr[AllPlayers()[i].worldselectionindex]++;
             }
-            define lewinner = [0,0];
-            for (define i = 0; i < 3; i++)
+            lewinner = [0,0];
+            for (define fcuk = 0; fcuk < 3; fcuk++)
             {
-                if(lewinner[1] < votearr[i]){
-                    lewinner[0] = i;
-                    lewinner[1] = votearr[i];
+                if(lewinner[1] < votearr[fcuk]){
+                    lewinner[0] = fcuk;
+                    lewinner[1] = votearr[fcuk];
                 }
             }
             votewinnerindex = lewinner[0];
             currentlyplaying = musicArray[lewinner[0]].name;
+            songname = musicArray[lewinner[0]].name;
             initialsonglen = musicArray[lewinner[0]].length;
-            songlen = musicArray[lewinner[0]].length;
+            SmallMessage(AllPlayers(), <"Vote winner is <0> ,index <1> with <2> votes",currentlyplaying,lewinner[0], lewinner[1]>);
+            songlen = initialsonglen;
             RPI(HostPlayer(),False());
             ChangeState(HostPlayer(),inputState.hostage);
         }
@@ -379,4 +451,4 @@ if(EventPlayer() == HostPlayer()) //run only on host
 }
 
 //What to do:
-//Piss in bed
+//Consume the cum chalice
