@@ -125,8 +125,9 @@ namespace _TielJ {
         public static inputState getState(Bitmap screen) {
             e_HUDLoc location;
             if (screen.Width < 1270 && screen.Height < 720) return inputState.unrecognized;
-            if (readColorFrom(screen, e_HUDLoc.topLeft) != colornames.UNRECOGNIZED) location = e_HUDLoc.topLeft;
-            else location = e_HUDLoc.middle;
+            //if (readColorFrom(screen, e_HUDLoc.topLeft) != colornames.UNRECOGNIZED) location = e_HUDLoc.topLeft;
+            //else 
+            location = e_HUDLoc.middle;
             colornames readColor = readColorFrom(screen, location);
             switch (readColor) {
                 case colornames.UNRECOGNIZED:
@@ -169,6 +170,10 @@ namespace _TielJ {
                     return 1;
                 case colornames.Blu:
                     return 2;
+                case colornames.Purple: //used for Mouse Input stuff
+                    return 3; //In-game angle has been reset
+                case colornames.Yellow:
+                    return 4; //Mouse input has been recognized
                 default:
                     return -69;
             }

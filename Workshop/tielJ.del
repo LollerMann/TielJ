@@ -48,6 +48,8 @@ globalvar define votearr = EmptyArray();
 
 globalvar define inputindex = 0;
 
+playervar define InputAvailabilityHudRef;
+
 void RPI(define player, define ishostVote) "Ready player for input, or raspberry pi depending on purview of your conondurums of philosophy"
 {   
     Kill(player, player);
@@ -102,8 +104,8 @@ void ChangeState(define player, inputState stt) "Change state" // #### Text is h
         if(player == HostPlayer()){
             musicArray = EmptyArray();
             //musicArrayLength = 0;
-            CreateHudText(HostPlayer(), sNameBuildArray,Null(),Null(),Location.Top, 2, Color.Purple, Color.Purple,Color.Purple,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
-            HostPlayer().letmesee = LastTextID();
+            //CreateHudText(HostPlayer(), sNameBuildArray,Null(),Null(),Location.Top, 2, Color.Purple, Color.Purple,Color.Purple,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+            //HostPlayer().letmesee = LastTextID();
             CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Red, Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways); //We are teleported but don't just start yet
 
         }
@@ -140,7 +142,7 @@ void ChangeState(define player, inputState stt) "Change state" // #### Text is h
         }*/
             //inworldtextamount = 0;
             //inworldOptionArray = EmptyArray();
-            DestroyHudText(HostPlayer().letmesee);
+            //DestroyHudText(HostPlayer().letmesee);
             SetAimSpeed(HostPlayer(),100);
             //DestroyInWorldText(ininputTextRev);
             CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Left, 0, Color.Orange, Color.Orange,Color.Orange,HudTextRev.None,Spectators.VisibleAlways);
@@ -379,6 +381,37 @@ if(playing)
         Wait(1);
     }
 }
+
+
+rule: 'Mouse Input has been provided, You can confirm now'
+if(HostPlayer().state == inputState.songlength || HostPlayer().state == inputState.songname)
+if(VerticalFacingAngleOf(HostPlayer()) > 0.10 || VerticalFacingAngleOf(HostPlayer()) < 0.10) //Sometimes there's some Non-ascii characters with way more higher value so mouse goes oob resulting in in-game angle going minus.
+if(InputType == 1) 
+{
+    if(HostPlayer().InputAvailabilityHudRef != Null()) DestroyHudText(HostPlayer().InputAvailabilityHudRef);
+    CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Top, 0, Color.Yellow, Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
+    HostPlayer().InputAvailabilityHudRef = LastTextID();
+    
+}
+rule: 'Mouse Input angle has been reset, you may provide input now'
+if(HostPlayer().state == inputState.songlength || HostPlayer().state == inputState.songname)
+if(VerticalFacingAngleOf(HostPlayer()) < 0.10)
+if(InputType == 1) 
+{
+    if(HostPlayer().InputAvailabilityHudRef != Null()) DestroyHudText(HostPlayer().InputAvailabilityHudRef);
+    CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Top, 0, Color.Purple, Color.Purple,Color.Purple,HudTextRev.None,Spectators.VisibleAlways);
+    HostPlayer().InputAvailabilityHudRef = LastTextID();
+}
+
+rule: 'Done providing mouse input'
+if(HostPlayer().state != inputState.songlength && HostPlayer().state != inputState.songname)
+if(InputType == 1) 
+{
+    if(HostPlayer().InputAvailabilityHudRef != Null()) DestroyHudText(HostPlayer().InputAvailabilityHudRef);
+    HostPlayer().InputAvailabilityHudRef = Null();
+}
+ 
+
 rule: "TielJ | an automated overwatch music bot"
 Event.OngoingPlayer //You might ask why player? Why not global? It's because I call EventPlayer stuff in there somewhere and DeltInteger complains about it.
 if(IsGameInProgress())

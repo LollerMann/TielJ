@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -92,11 +93,24 @@ namespace _TielJ {
             if (maccelon) {
                 ToggleMouseAccel();
             }
-            foreach (char ch in s) {
-                MoveVader(0, whatpercentof(magiknumber, (int)ch));//Move send 128 input
-                Thread.Sleep(200);
-                SendKey(GetGameKey(gameKeys.Interact));
-                Thread.Sleep(200);
+            for(int i = 0; i< s.Length; i++) {
+                bool inputsuccess = false;
+                int prevstate = 10;
+                while (!inputsuccess) {
+                    Bitmap screenshot = Screen.CaptureWindow(TielJ.OverwatchHandle);
+                    int piss = getVoteResult(screenshot);
+                    if(piss == 3 && piss != prevstate) {
+                        MoveVader(0, whatpercentof(magiknumber, (int)s[i]));//Move send 128 input
+                        Thread.Sleep(200);
+                        prevstate = piss;
+                    }
+                    else {
+                        SendKey(GetGameKey(gameKeys.Interact));
+                        Thread.Sleep(200);
+                        inputsuccess = true;
+                    }
+                    screenshot.Dispose();
+                }
             }
 
             if (maccelon) ToggleMouseAccel();

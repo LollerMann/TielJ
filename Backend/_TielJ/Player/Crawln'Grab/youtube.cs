@@ -149,7 +149,8 @@ namespace _TielJ.Player.Crawln_Grab {
                     contentLength = (uint)(bitrate / 8 * approxlen * 1.5),
                     approximateLength = (uint)approxlen,
                     bitrate = bitrate,
-                    serverAudioStream = resp.GetResponseStream()
+                    serverAudioStream = resp.GetResponseStream(),
+                    RefUrl = url
 
                 };
             }

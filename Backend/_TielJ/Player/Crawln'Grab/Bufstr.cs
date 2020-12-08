@@ -16,7 +16,7 @@ namespace _TielJ.Player.Crawln_Grab {
         MemoryStream memstr;
         long memstrpos;
         Thread BufferThread;
-        bool abortnite = false;
+        public bool abortnite = false;
         bool paused = false;
 
         public int ToBeBuffered;
@@ -32,6 +32,13 @@ namespace _TielJ.Player.Crawln_Grab {
         public void Dispose(){
             audioInfo.serverAudioStream.Close();
             abortnite = true;
+        }
+        public void Defibrillate(audioInfo info) {
+            setReadStream(info.serverAudioStream);
+            abortnite = false;
+            jumpstart = false;
+            BufferThread = new Thread(new ThreadStart(readToStream));
+            BufferThread.Start(); //BREATHE YOU BASTARD
         }
         private static bool jumpstart = false;
         private int stinker;
