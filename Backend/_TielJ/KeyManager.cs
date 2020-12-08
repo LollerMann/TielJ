@@ -104,10 +104,13 @@ namespace _TielJ {
                         Thread.Sleep(200);
                         prevstate = piss;
                     }
-                    else {
+                    else if(piss == 4) {
                         SendKey(GetGameKey(gameKeys.Interact));
                         Thread.Sleep(200);
                         inputsuccess = true;
+                    }
+                    else {
+                        Console.WriteLine($"Unrecognized stuff {piss}");
                     }
                     screenshot.Dispose();
                 }

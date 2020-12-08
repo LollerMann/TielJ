@@ -385,21 +385,21 @@ if(playing)
 
 rule: 'Mouse Input has been provided, You can confirm now'
 if(HostPlayer().state == inputState.songlength || HostPlayer().state == inputState.songname)
-if(VerticalFacingAngleOf(HostPlayer()) > 0.10 || VerticalFacingAngleOf(HostPlayer()) < 0.10) //Sometimes there's some Non-ascii characters with way more higher value so mouse goes oob resulting in in-game angle going minus.
+if(VerticalFacingAngleOf(HostPlayer()) > 0.10 || VerticalFacingAngleOf(HostPlayer()) < -0.10) //Sometimes there's some Non-ascii characters with way more higher value so mouse goes oob resulting in in-game angle going minus.
 if(InputType == 1) 
 {
     if(HostPlayer().InputAvailabilityHudRef != Null()) DestroyHudText(HostPlayer().InputAvailabilityHudRef);
-    CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Top, 0, Color.Yellow, Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
+    CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Top, 2, Color.Yellow, Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
     HostPlayer().InputAvailabilityHudRef = LastTextID();
     
 }
 rule: 'Mouse Input angle has been reset, you may provide input now'
 if(HostPlayer().state == inputState.songlength || HostPlayer().state == inputState.songname)
-if(VerticalFacingAngleOf(HostPlayer()) < 0.10)
+if(VerticalFacingAngleOf(HostPlayer()) < 0.10 && VerticalFacingAngleOf(HostPlayer()) > -0.10)
 if(InputType == 1) 
 {
     if(HostPlayer().InputAvailabilityHudRef != Null()) DestroyHudText(HostPlayer().InputAvailabilityHudRef);
-    CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Top, 0, Color.Purple, Color.Purple,Color.Purple,HudTextRev.None,Spectators.VisibleAlways);
+    CreateHudText(HostPlayer(), "######", Null(), Null(), Location.Top, 2, Color.Purple, Color.Purple,Color.Purple,HudTextRev.None,Spectators.VisibleAlways);
     HostPlayer().InputAvailabilityHudRef = LastTextID();
 }
 

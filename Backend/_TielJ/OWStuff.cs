@@ -55,7 +55,7 @@ namespace _TielJ {
         }
         static readonly public Dictionary<e_HUDLoc, pixPos> PixPos = new Dictionary<e_HUDLoc, pixPos>() {
             {e_HUDLoc.topLeft,new pixPos(){x = 42,y=44}},
-            {e_HUDLoc.middle, new pixPos(){x=899,y=118}},
+            {e_HUDLoc.middle, new pixPos(){x=899,y=67}},//????
             {e_HUDLoc.topRight,new pixPos(){x=1711,y=44}}
         };
         static readonly public Dictionary<color, colornames> Colors = new Dictionary<color, colornames>() {
@@ -127,7 +127,7 @@ namespace _TielJ {
             if (screen.Width < 1270 && screen.Height < 720) return inputState.unrecognized;
             //if (readColorFrom(screen, e_HUDLoc.topLeft) != colornames.UNRECOGNIZED) location = e_HUDLoc.topLeft;
             //else 
-            location = e_HUDLoc.middle;
+            location = e_HUDLoc.topLeft;
             colornames readColor = readColorFrom(screen, location);
             switch (readColor) {
                 case colornames.UNRECOGNIZED:

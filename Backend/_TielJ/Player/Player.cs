@@ -96,8 +96,10 @@ namespace _TielJ.Player {
 
         public static void Tick() {
 
-                if (WaveOut.PlaybackState == PlaybackState.Playing)
-                {
+            if (WaveOut.PlaybackState == PlaybackState.Playing){
+                if (current.bufferedStream.abortnite) { //oh god oh shit oh fuck
+
+                }
                     seconds++;
                     if (seconds % 30 > 20)
                     {
@@ -107,6 +109,12 @@ namespace _TielJ.Player {
             
         }
 
+        static void Bypass() {
+            //Get a donor
+            Match sitename = Regex.Match(current.RefUrl, @"\.((.*?)\..*?)/");
+            BaseClass Donor = (BaseClass)Activator.CreateInstance(supportedSites[sitename.Groups[1].Value]);
+            current.bufferedStream.Defibrillate(Donor.getAudioInfo());
+        }
         static void Pause() {
             WaveOut.Pause();
         }
