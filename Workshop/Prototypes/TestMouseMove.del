@@ -1,0 +1,30 @@
+playervar define anglearray;
+rule: 'SetUpShop'
+Event.OnPlayerJoin
+if(IsGameInProgress())
+{
+    CreateHudText(EventPlayer(), FacingDirectionOf(EventPlayer()), Null(), Null(), Location.Right, 1, Color.Purple, Color.Purple,Color.Purple, HudTextRev.String,Spectators.DefaultVisibility);
+    CreateHudText(EventPlayer(), HorizontalFacingAngleOf(EventPlayer()), Null(), Null(), Location.Right, 1, Color.Purple, Color.Purple,Color.Purple, HudTextRev.String,Spectators.DefaultVisibility);
+    CreateHudText(EventPlayer(), VerticalFacingAngleOf(EventPlayer()), Null(), Null(), Location.Right, 1, Color.Purple, Color.Purple,Color.Purple, HudTextRev.String,Spectators.DefaultVisibility);
+    EventPlayer().anglearray = EmptyArray();
+
+}
+
+rule: 'piss'
+Event.OngoingPlayer
+if(IsButtonHeld(EventPlayer(),Button.Interact))
+{
+    EventPlayer().anglearray = Append(anglearray,VerticalFacingAngleOf(EventPlayer()));
+    SetFacing(EventPlayer(),Vector(0,0,0),Relative.ToPlayer);
+
+}
+
+
+rule: 'coce'
+Event.OngoingPlayer
+if(IsButtonHeld(EventPlayer(),Button.Ultimate))
+{
+
+    EventPlayer().anglearray = EmptyArray();
+    SmallMessage(EventPlayer(),"Array reset");
+}

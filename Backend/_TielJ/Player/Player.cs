@@ -48,11 +48,16 @@ namespace _TielJ.Player {
             return Agent.GetSimilar()[index].url;
         }
         public static int seconds =0;
+
         public static void InitUrl(string url) {
             seconds = 0;
             if (Agent != null) Agent.Dispose();
             Agent = null;
             if (current.bufferedStream != null) current.bufferedStream.Dispose();
+            if (WaveOut.PlaybackState != PlaybackState.Stopped) {
+                WaveOut.Stop();
+                WaveOut.Dispose();
+            } 
             Match sitename = Regex.Match(url, @"\.((.*?)\..*?)/");
             if (!supportedSites.ContainsKey(sitename.Groups[1].Value)) throw new NotImplementedException($"TielJ does not support this website yet! {sitename.Groups[2].Value}");
             Agent = (BaseClass)Activator.CreateInstance(supportedSites[sitename.Groups[1].Value]);
@@ -74,30 +79,33 @@ namespace _TielJ.Player {
         public static StreamMediaFoundationReader streamRead;
         public static void Play(string url = "") { 
             if (url != "") {
+                bool initialized = false;
                 do {
                     try {
                         InitUrl(url);
+                        WindowRenderer.newIndex();
+                        current.bufferedStream = new bufferedStream(current);
+                        Stream piss = current.bufferedStream.getStream();
+                        streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
+                        WaveOut.Init(streamRead);
+                        initialized = true;
                     }
                     catch (Exception e) {
                         Console.WriteLine($"An error occured during initialization of player: {e.Message}");
                     }
                 }
-                while (Agent == null);
-                InitUrl(url);
-                WindowRenderer.newIndex();
-                current.bufferedStream = new bufferedStream(current);
-                Stream piss = current.bufferedStream.getStream();
-                streamRead = new StreamMediaFoundationReader(piss, new MediaFoundationReader.MediaFoundationReaderSettings() { SingleReaderObject = true });
-                WaveOut.Init(streamRead);
-                
+                while (!initialized);
             }
             WaveOut.Play();
         }
 
         public static void Tick() {
 
-                if (WaveOut.PlaybackState == PlaybackState.Playing)
-                {
+            if (WaveOut.PlaybackState == PlaybackState.Playing){
+                if (current.bufferedStream.abortnite) { //oh god oh shit oh fuck
+                    Bypass();
+
+                }
                     seconds++;
                     if (seconds % 30 > 20)
                     {
@@ -107,6 +115,12 @@ namespace _TielJ.Player {
             
         }
 
+        static void Bypass() {
+            //Get a donor
+            Match sitename = Regex.Match(current.RefUrl, @"\.((.*?)\..*?)/");
+            BaseClass Donor = (BaseClass)Activator.CreateInstance(supportedSites[sitename.Groups[1].Value]);
+            current.bufferedStream.Defibrillate(Donor.getAudioInfo());
+        }
         static void Pause() {
             WaveOut.Pause();
         }

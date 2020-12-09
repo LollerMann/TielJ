@@ -12,6 +12,8 @@ enum inputState {
     songlength,
     hostage,
     hostvote,
+    inputType,
+    inputSens,
     back
 }
 

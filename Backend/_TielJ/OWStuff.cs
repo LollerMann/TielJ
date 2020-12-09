@@ -8,9 +8,11 @@ using System.Windows.Forms;
 
 namespace _TielJ {
     public static class OWStuff {
+        public static short MouseSens = -60;
         public enum e_HUDLoc {
             topLeft,
             middle,
+            middle2,
             topRight
         }
         public struct pixPos {
@@ -47,6 +49,13 @@ namespace _TielJ {
                 }
                 return colornames.UNRECOGNIZED;
             }
+            public static colornames GetName(Bitmap screen,e_HUDLoc pos) {
+                if (pos == e_HUDLoc.middle) {
+                    if (GetName(screen.GetPixel(PixPos[pos].x, PixPos[pos].y)) != colornames.UNRECOGNIZED) return GetName(screen.GetPixel(PixPos[pos].x, PixPos[pos].y));
+                    if (GetName(screen.GetPixel(PixPos[e_HUDLoc.middle2].x, PixPos[e_HUDLoc.middle2].y)) != colornames.UNRECOGNIZED) return GetName(screen.GetPixel(PixPos[e_HUDLoc.middle2].x, PixPos[e_HUDLoc.middle2].y));
+                }
+                return GetName(screen.GetPixel(PixPos[pos].x, PixPos[pos].y));
+            }
             public static bool isColor(colornames cname, Color color) {
                 if (GetName(color) == cname) return true;
                 return false;
@@ -54,7 +63,8 @@ namespace _TielJ {
         }
         static readonly public Dictionary<e_HUDLoc, pixPos> PixPos = new Dictionary<e_HUDLoc, pixPos>() {
             {e_HUDLoc.topLeft,new pixPos(){x = 42,y=44}},
-            {e_HUDLoc.middle, new pixPos(){x=899,y=118}},
+            {e_HUDLoc.middle, new pixPos(){x=899,y=67}},//????
+            {e_HUDLoc.middle2,new pixPos(){x=899,y=118 }},
             {e_HUDLoc.topRight,new pixPos(){x=1711,y=44}}
         };
         static readonly public Dictionary<color, colornames> Colors = new Dictionary<color, colornames>() {
@@ -107,13 +117,15 @@ namespace _TielJ {
             songlength,
             hostage,
             idle,
+            inputtype,
+            inputsens,
             unrecognized
         };
         private static colornames readColorFrom(Bitmap screen,e_HUDLoc position) {
-            if (color.GetName(screen.GetPixel(PixPos[position].x, PixPos[position].y)) != colornames.UNRECOGNIZED) {
-                colornames readcolor = color.GetName(screen.GetPixel(PixPos[position].x, PixPos[position].y));
+            if (color.GetName(screen,position) != colornames.UNRECOGNIZED ) {
+                colornames readcolor = color.GetName(screen, position);
                 for (int i = 0; i < 22 * 6; i += 22) {
-                    if (color.GetName(screen.GetPixel(PixPos[position].x + i, PixPos[position].y)) != readcolor) return colornames.UNRECOGNIZED;
+                    if (color.GetName(screen, position) != readcolor) return colornames.UNRECOGNIZED;
                 }
                 return readcolor;
             }
@@ -122,20 +134,27 @@ namespace _TielJ {
         public static inputState getState(Bitmap screen) {
             e_HUDLoc location;
             if (screen.Width < 1270 && screen.Height < 720) return inputState.unrecognized;
-            if (readColorFrom(screen, e_HUDLoc.topLeft) != colornames.UNRECOGNIZED) location = e_HUDLoc.topLeft;
-            else location = e_HUDLoc.middle;
+            //if (readColorFrom(screen, e_HUDLoc.topLeft) != colornames.UNRECOGNIZED) location = e_HUDLoc.topLeft;
+            //else 
+            location = e_HUDLoc.topLeft;
             colornames readColor = readColorFrom(screen, location);
             switch (readColor) {
                 case colornames.UNRECOGNIZED:
-                    return inputState.unrecognized;
-                case colornames.Orang:
                     if (location == e_HUDLoc.topLeft) {
                         if (readColorFrom(screen, e_HUDLoc.middle) != colornames.UNRECOGNIZED) {
                             return inputState.hostage;
-                        }
-                        else return inputState.idle;
+                        } else return inputState.idle;
+                    }
+                    return inputState.unrecognized;
+                case colornames.Orang:
+                    if (location == e_HUDLoc.topLeft) {
+                       return inputState.idle;
                     }
                     else return inputState.unrecognized;
+                case colornames.Yellow:
+                    return inputState.inputtype;
+                case colornames.Lime:
+                    return inputState.inputsens;
                 case colornames.Blu:
                     if (location == e_HUDLoc.topLeft) return inputState.songlength;
                     else return inputState.hostage;
@@ -162,6 +181,10 @@ namespace _TielJ {
                     return 1;
                 case colornames.Blu:
                     return 2;
+                case colornames.Purple: //used for Mouse Input stuff
+                    return 3; //In-game angle has been reset
+                case colornames.Yellow:
+                    return 4; //Mouse input has been recognized
                 default:
                     return -69;
             }

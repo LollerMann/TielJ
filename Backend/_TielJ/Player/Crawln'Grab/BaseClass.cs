@@ -21,6 +21,7 @@ namespace _TielJ.Player.Crawln_Grab {
         public int bitrate;
         public Stream serverAudioStream;
         public bufferedStream bufferedStream;
+        public string RefUrl;
     }
     static public class values {
         public static readonly string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:82.0) Gecko/20100101 Firefox/82.0"; //I don't know how to have partial functions and istances
