@@ -12,11 +12,11 @@ You neeed to have:
 # How do I use it?
 * Set Virtual Audio Cable's microphone as your default communication device (or directly default device) and configure your game to use it.
 * Apply skirmish preset on your custom game, generate a working workshop code, paste it into workshop section and start your game.
-* Compile and launch your desktop backend with url of the youtube content you wish to start with, ex. `TielJ.exe https://www.youtube.com/watch?v=SuperCoolVidId`
-* When informed, don't touch anything. You might interfere with data building process which WILL require restarting both backend and your game server.
+* Compile and launch your desktop backend with url of the youtube content you wish to start with, ex. `_TielJ.exe https://www.youtube.com/watch?v=SuperCoolVidId` If you want to use the mouse input, provide your sensitivy after url like this: `_TielJ.exe https://www.youtube.com/watch?v=ZhhQrFfzFM4 7.2` be aware that maximum supported in-game sensitivy setting is 7.2
+* When informed, don't touch your keyboard or mouse. You might interfere with data building process which WILL require restarting both backend and your game server.
 
 # How does it work?
-Workshop script sets colored hud texts visible only to host player which the backend makes use of. Depending on what host player's state is, backend may use **PRIMARY FIRE** and **SECONDARY FIRE** to input binary string to game, **INTERACT** and **ULTIMATE** keys to switch between modes or confirm the input.
+Workshop script sets colored hud texts visible only to host player which the backend makes use of. Depending on what host player's state and the preferred input method is, backend may use **PRIMARY FIRE** and **SECONDARY FIRE** to input binary string to game, **INTERACT** and **ULTIMATE** keys to switch between modes or confirm the input. If mouse input is preferred backend will move the mouse on the Y axis to provide ASCII value. This method is undeniably faster than binary method.
 Entered binary text and numbers are rebuilt in workshop script to be used.
 
 After content infos are submitted listeners on the match can use their **CROUCH** + **INTERACT** key combo to enter a voting state which renders them immune to attacks and disables every ability and movement.
@@ -28,10 +28,11 @@ When playing content reaches it's end, winning option gets selected and Host Pla
 Head over to `OWStuff.cs` file and find the private `KeyMap` dictionary (should be around line 177) and work your way there.
 
 # Bugs I encountered during my limited testing
-- [ ] Youtube randomly gives an improper response and as a result backend literally dies (Best I can do is try until it works) | (NEEDS TESTING)
-- [ ] During binary conversion in workshop code, content's length is set to value a workshop variable can hold max. Resulting in infinite playtime.
-- [ ] During buffering, a race condition arises so a considerable portion of content gets skipped (using multi threading might fix this) (NEEDS TESTING)
+- [x] Youtube randomly gives an improper response and as a result backend literally dies (Best I can do is try until it works) | (NEEDS TESTING)
+- [ ] During binary conversion in workshop code, content's length is set to value a workshop variable can hold max. Resulting in infinite playtime. | (NEEDS TESTING)
+- [x] During buffering, a race condition arises so a considerable portion of content gets skipped (using multi threading might fix this) | (NEEDS TESTING)
 - [ ] Some content's length might be less than needed to input a complete array of music infos. (Not selecting those videos for input or not pussying out when sending input might fix this issue)
 
 # TODO
-- [ ] Ditch primary fire/secondary fire input style and find some way to move cursor in-game to send ASCII character value
+- [x] Ditch primary fire/secondary fire input style and find some way to move cursor in-game to send ASCII character value | (NEEDS TESTING)
+- [ ] Maybe hook the keyboard and mouse input calls and disable them while providing input to the game?
