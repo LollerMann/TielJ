@@ -93,27 +93,27 @@ namespace _TielJ {
             if (maccelon) {
                 ToggleMouseAccel();
             }
-            for(int i = 0; i< s.Length; i++) {
+            int prevstate = 10;
+            for (int i = 0; i< s.Length; i++) {
                 bool inputsuccess = false;
-                int prevstate = 10;
-                while (!inputsuccess) {
+                do {
                     Bitmap screenshot = Screen.CaptureWindow(TielJ.OverwatchHandle);
                     int piss = getVoteResult(screenshot);
-                    if(piss == 3 && piss != prevstate) {
+                    if (piss == 3 && piss != prevstate) {
                         MoveVader(0, whatpercentof(magiknumber, (int)s[i]));//Move send 128 input
                         Thread.Sleep(200);
                         prevstate = piss;
-                    }
-                    else if(piss == 4) {
+                    } else if (piss == 4) {
                         SendKey(GetGameKey(gameKeys.Interact));
                         Thread.Sleep(200);
                         inputsuccess = true;
-                    }
-                    else {
+                        prevstate = piss;
+                    } else {
                         Console.WriteLine($"Unrecognized stuff {piss}");
                     }
                     screenshot.Dispose();
-                }
+                } while (!inputsuccess);
+                Thread.Sleep(50); //unsure
             }
 
             if (maccelon) ToggleMouseAccel();

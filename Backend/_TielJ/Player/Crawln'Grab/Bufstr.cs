@@ -68,6 +68,10 @@ namespace _TielJ.Player.Crawln_Grab {
                     if (stinker > 5) abortnite = true;
                     else readToStream();
                 }
+                catch (System.Net.WebException ex) {
+                    Console.WriteLine("WE DONE GOOFED");
+                    abortnite = true;
+                }
                 if (jumpstart) break;
                 Thread.Sleep(5000);
             }

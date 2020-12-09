@@ -315,11 +315,13 @@ if(IsGameInProgress() == True())
  
    ChangeState(EventPlayer(),inputState.back);
    EventPlayer().worldselectionindex = 0;
-   CreateHudText(EventPlayer(),"Your selection",Null(),worldselectionindex,Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
-   CreateHudText(EventPlayer(),"Length of musicarray",Null(),CountOf(musicArray),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
-   CreateHudText(EventPlayer(),"second element of musicarray",Null(),musicArray[1].name,Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   CreateHudText(EventPlayer(),"Please Don't vote for songs that are less than a minute. It's a bug.",Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   CreateHudText(EventPlayer(),"Be sure to join match voice chat",Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   //CreateHudText(EventPlayer(),"Your selection",Null(),worldselectionindex,Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   //CreateHudText(EventPlayer(),"Length of musicarray",Null(),CountOf(musicArray),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
+   //CreateHudText(EventPlayer(),"second element of musicarray",Null(),musicArray[1].name,Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
    //CreateHudText(HostPlayer(),state,Null(),Null(),Location.Right, 3,Color.Blue,Color.Blue,Color.Blue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
-   CreateHudText(EventPlayer(),VerticalFacingAngleOf(HostPlayer()), Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
+   //CreateHudText(EventPlayer(),VerticalFacingAngleOf(HostPlayer()), Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
    CreateHudText(EventPlayer(),currentlyplaying, Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.SortOrderAndString,Spectators.VisibleAlways);
 
     

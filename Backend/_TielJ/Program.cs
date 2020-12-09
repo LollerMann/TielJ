@@ -38,7 +38,6 @@ namespace _TielJ {
             //Thread.Sleep(5000);
             //Tests.PlayerTest();
             //Tests.TestMouse();
-
             new TielJ(args[0]);
             Console.ReadKey();
         }

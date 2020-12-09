@@ -48,11 +48,16 @@ namespace _TielJ.Player {
             return Agent.GetSimilar()[index].url;
         }
         public static int seconds =0;
+
         public static void InitUrl(string url) {
             seconds = 0;
             if (Agent != null) Agent.Dispose();
             Agent = null;
             if (current.bufferedStream != null) current.bufferedStream.Dispose();
+            if (WaveOut.PlaybackState != PlaybackState.Stopped) {
+                WaveOut.Stop();
+                WaveOut.Dispose();
+            } 
             Match sitename = Regex.Match(url, @"\.((.*?)\..*?)/");
             if (!supportedSites.ContainsKey(sitename.Groups[1].Value)) throw new NotImplementedException($"TielJ does not support this website yet! {sitename.Groups[2].Value}");
             Agent = (BaseClass)Activator.CreateInstance(supportedSites[sitename.Groups[1].Value]);
@@ -98,6 +103,7 @@ namespace _TielJ.Player {
 
             if (WaveOut.PlaybackState == PlaybackState.Playing){
                 if (current.bufferedStream.abortnite) { //oh god oh shit oh fuck
+                    Bypass();
 
                 }
                     seconds++;

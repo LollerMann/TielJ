@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -22,6 +23,7 @@ namespace _TielJ
         {
             Player.Player.Initialize();
             Player.Player.Play("https://www.youtube.com/watch?v=HBpXtVtfaWE");
+            Thread.Sleep(10000);
         }
         private static int cocainer(int stuff) { return (int)(stuff * 1.32); }
 
