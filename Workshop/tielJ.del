@@ -1,5 +1,6 @@
 import "types.del";
 import "binaryConversion.del";
+import "SneakyDriver.del";
 globalvar define sNameBuildArray = EmptyArray();
 globalvar define sLengthBuildArray = EmptyArray();
 globalvar define sLengthBuildIndex = 1;
@@ -312,7 +313,6 @@ rule: "Initialize Tiel variables"
 Event.OnPlayerJoin
 if(IsGameInProgress() == True())
 {
- 
    ChangeState(EventPlayer(),inputState.back);
    EventPlayer().worldselectionindex = 0;
    CreateHudText(EventPlayer(),"Please Don't vote for songs that are less than a minute. It's a bug.",Null(),Null(),Location.Right,1,Color.SkyBlue,Color.SkyBlue,Color.SkyBlue,HudTextRev.String,Spectators.DefaultVisibility);
@@ -342,6 +342,7 @@ if(votingavailable)
 rule: "Show voting status | Unavailable"
 Event.OngoingPlayer
 if(!votingavailable)
+if(EventPlayer().state != inputState.songname)
 {
     if(EventPlayer().votingavailableHUDtext != null) DestroyHudText(EventPlayer().votingavailableHUDtext);
     CreateHudText(EventPlayer(),"Voting Unavailable",Null(),Null(),Location.Right,1,Color.Red,Color.Red,Color.Red,HudTextRev.None,Spectators.VisibleAlways);
@@ -350,10 +351,21 @@ if(!votingavailable)
 rule: "Show voting status | available"
 Event.OngoingPlayer
 if(votingavailable)
+if(EventPlayer().state != inputState.songname)
+
 {
     if(EventPlayer().votingavailableHUDtext != null) DestroyHudText(EventPlayer().votingavailableHUDtext);
-    CreateHudText(EventPlayer(),<"Vote Now! <0> + <1>", InputBindingString(Button.Crouch),InputBindingString(Button.Interact)>,Null(),Null(),Location.Right,1,Color.Yellow,Color.Yellow,Color.Yellow,HudTextRev.None,Spectators.VisibleAlways);
+    CreateHudText(EventPlayer(),<"Vote Now! <0> + <1>", InputBindingString(Button.Crouch),InputBindingString(Button.Interact)>,Null(),Null(),Location.Right,1,Color.Yellow,Color.Yellow,Color.Yellow,HudTextRev.VisibleToAndSortOrder,Spectators.DefaultVisibility);
     EventPlayer().votingavailableHUDtext = LastTextID();
+}
+rule: "Show voting status | In-vote"
+Event.OngoingPlayer
+if(votingavailable)
+if(EventPlayer().state == inputState.songname)
+{
+    if(EventPlayer().votingavailableHUDtext != null && EventPlayer() != HostPlayer()) DestroyHudText(EventPlayer().votingavailableHUDtext);
+    CreateHudText(EventPlayer(),<"Use your mouse buttons to cycle between options and press your <0> key to confirm your vote", InputBindingString(Button.Ultimate)>,Null(),Null(),Location.Right,1,Color.Yellow,Color.Yellow,Color.Yellow,HudTextRev.VisibleToAndSortOrder,Spectators.DefaultVisibility);
+    if(EventPlayer() != HostPlayer())EventPlayer().votingavailableHUDtext = LastTextID();
 }
 /*rule: "showpos"
 Event.OngoingPlayer
@@ -421,6 +433,7 @@ if(EventPlayer() == HostPlayer()) //run only on host
 {
     while(IsGameInProgress()){
         if (InputType == 21 && HostPlayer().state != inputState.inputType && !SessionInitialized && IsAlive(HostPlayer())){
+            CoolStuffToggle = WorkshopSettingToggle("TielJ","Enable Epic Stuff",True(),0);
             Wait(5);
             SmallMessage(HostPlayer(),"Welcome To TielJ! Please file bug reports in github url.");
             Wait(5);
@@ -484,6 +497,106 @@ if(EventPlayer() == HostPlayer()) //run only on host
         Wait(1);
     }
 }
+
+
+
+//// Le epic stuff ////
+globalvar define CoolStuffToggle;
+//// SneakyDriver ////
+
+//Here's an working prototype I set up: https://youtu.be/5VZp10Mps0U
+rule: 'ZeroDied'
+Event.OnDeath
+if(EventPlayer() == HostPlayer())
+{
+    /*for(define i = 0; i<CountOf(killed); i++){
+    EnableRespawning(killed[i]);
+    }*/
+    DestroyDummyBot(TeamOf(duplicatedbot),SlotOf(duplicatedbot));
+    SetSlowMotion(10);
+    Wait(0.5);
+    //SmallMessage(AllPlayers(),CountOf(memories));
+    for(define i = 0; i< CountOf(memories); i++){
+        restore(memories[i]);
+    }
+    SetSlowMotion(100);
+    restore(fade);
+    songlen -= 3;
+    falling(False());
+    killed = [];
+}
+
+rule: 'its time'
+Event.OngoingGlobal
+if(songname == "Sneaky Driver | Bill Kiley")
+if(CountOf(AllPlayers(Team.Team1)) < 6 || CountOf(AllPlayers(Team.Team2)) < 6)
+if(zero == HostPlayer())
+if(CoolStuffToggle)
+if(!dooplicated)
+{
+    zero = HostPlayer();
+    while(zero != HostPlayer()){ //Host may be in input
+        zero = RandomValueInArray(AllPlayers());
+        if(CountOf(AllPlayers(OppositeTeamOf(TeamOf(zero)))) >5) zero = HostPlayer();
+    }
+    CreateHudText(zero, "Hide somewhere, even from your teammates, and press your ultimate and interact key",Null(),Null(),Location.Top,0,Color.Red,Color.Red,Color.Red,HudTextRev.VisibleToAndSortOrder,Spectators.DefaultVisibility);
+    zero.sdInstructionHudRed = LastTextID();
+}
+
+rule: 'Bring death'
+Event.OngoingPlayer
+if(zero != HostPlayer())
+if(IsButtonHeld(EventPlayer(), Button.Interact))
+if(IsButtonHeld(EventPlayer(), Button.Ultimate))
+if(!dooplicated)
+{
+    DestroyHudText(zero.sdInstructionHudRed);
+    ForcePlayerHero(zero,Hero.Genji);
+    falling(True());
+    dooplicated = True();
+
+}
+
+rule: 'Zero is done'
+Event.OngoingGlobal
+if(dooplicated)
+if(CountOf(AllLivingPlayers()) == 2 || (songlen < 3))
+{
+    dooplicated = False();
+    if(CountOf(AllLivingPlayers()) == 2)SmallMessage(zero,"Yes,that will do.");
+    else{
+      SmallMessage(zero,"Thou hast failed your task");
+      Wait(1);
+      Kill(zero,duplicatedbot);
+      SmallMessage(zero,"Pathetic.");
+    } 
+    define playas = AllPlayers();
+    for(define i =0; i< CountOf(playas);i++){
+        if(playas[i] != zero) DestroyInWorldText(playas[i].killme);
+        if(playas[i].badtiming != Null()){
+            EnableRespawning(playas[i]);
+            StopForcingHero(playas[i]);
+            DestroyHudText(playas[i].badtiming);
+        }
+    }
+    DestroyDummyBot(duplicatedbot);
+}
+
+void restore(memory _memory){
+    Resurrect(_memory.player);
+        Teleport(_memory.player,_memory.position);
+        SetFacing(_memory.player,_memory.LookAngles);
+        if(_memory.player.state != inputState.back) ChangeState(_memory.player,inputState.back);
+        if(!_memory.isUlting){
+            SetUltimateCharge(_memory.player,_memory.ultpercentage);
+        }
+        else{
+            SetUltimateCharge(_memory.player,100);
+            PressButton(_memory.player,Button.Ultimate);
+            
+        }
+}
+
 
 //What to do:
 //Consume the cum chalice

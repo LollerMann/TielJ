@@ -1,0 +1,244 @@
+globalvar define dooplicated = False();
+globalvar define zero = HostPlayer();
+globalvar define duplicatedbot = "mw wife left me";
+globalvar define victimdamagemod = [0,0];
+playervar define killme;
+playervar define badtiming;
+
+playervar define metduplicate = False();
+playervar define sdInstructionHudRed = 100;
+class memory{
+    public define player;
+    public Vector position;
+    public Vector LookAngles;
+    public define ultpercentage;
+    public define isUlting;
+    public memory(define pl, Vector pos, Vector look, define ult,define isult){
+        player = pl;
+        position = pos;
+        LookAngles = look;
+        ultpercentage = ult;
+        isUlting = isult;
+    }
+}
+
+globalvar memory[] memories = EmptyArray();
+globalvar memory fade;
+
+void falling(define initial){
+    DisableMovementCollisionWithPlayers(EventPlayer());
+    CreateDummyBot(HeroOf(EventPlayer()), OppositeTeamOf(TeamOf(EventPlayer())),5, PositionOf(EventPlayer()), FacingDirectionOf(zero));
+    define allp = AllPlayers();
+    for(define i = 0; i< CountOf(allp); i++){
+        if(IsDummyBot(allp[i])){
+            duplicatedbot = allp[i];
+            //SmallMessage(zero, "shut moutgh hammock");
+            
+        } 
+        else if(initial) {
+            define playa = allp[i];
+            ForcePlayerHero(playa,HeroOf(playa));
+            CreateInWorldText(zero,"KILL",EyePosition(playa), 2,Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition,Color.Red,Spectators.DefaultVisibility);
+            if(playa != zero)memories = Append(memories,new memory(playa, PositionOf(playa), FacingDirectionOf(playa),UltimateChargePercent(playa), IsUsingUltimate(playa)));
+            else fade = new memory(playa, PositionOf(playa), FacingDirectionOf(playa),UltimateChargePercent(playa), IsUsingUltimate(playa));
+        }
+    }
+    if(initial){
+        SetStatus(duplicatedbot,Null(), Status.PhasedOut,9999);
+        Teleport(duplicatedbot, (PositionOf(zero) + FacingDirectionOf(zero)));
+        SetFacing(duplicatedbot,DirectionTowards(EyePosition(duplicatedbot),EyePosition(zero)),Relative.ToWorld);
+        Wait(1);
+        SetSlowMotion(10);
+        SmallMessage(zero,"Obeyest thou my command");
+        Wait(0.05);
+        SmallMessage(zero,"Make death this night...");
+        Wait(0.05);
+        SmallMessage(zero,"and let no man escape thy blade");
+        Wait(0.05);
+        SetSlowMotion(100);
+        ClearStatus(duplicatedbot,Status.PhasedOut);
+    }
+    //SmallMessage(zero, HeroOf(duplicatedbot));
+    DisableMovementCollisionWithPlayers(duplicatedbot);
+    //SetStatus(duplicatedbot,Null(), Status.PhasedOut, 9999);
+    SetGravity(duplicatedbot,0);
+    SetInvisible(duplicatedbot,InvisibleTo.All);
+    AttachPlayers(duplicatedbot, zero, Vector(0,0,0));
+    define allplayer = AllPlayers();
+    allplayer = RemoveFromArray(allplayer,zero);
+    allplayer = RemoveFromArray(allplayer,duplicatedbot);
+    setzero(2000);
+    StartDamageModification(allplayer, allplayer, 0, DamageModificationRev.ReceiversDamagersAndDamagePercent);
+    StartDamageModification(duplicatedbot,zero, 0,DamageModificationRev.ReceiversAndDamagers);
+    StartDamageModification(zero,duplicatedbot, 0,DamageModificationRev.ReceiversAndDamagers);
+    //CreateEffect(AllPlayers(), Effect.Orb, Color.Purple, RayCastHitPosition(EyePosition(zero), (EyePosition(zero) + (FacingDirectionOf(zero) *200)), AllPlayers(), [duplicatedbot,zero],True()), 5,EffectRev.PositionAndRadius);
+    StartFacing(duplicatedbot,DirectionTowards(EyePosition(duplicatedbot),RayCastHitPosition(EyePosition(zero), (EyePosition(zero) + (FacingDirectionOf(zero) *200)), AllPlayers(), [duplicatedbot,zero],True())), 36000, Relative.ToWorld, FacingRev.DirectionAndTurnRate);
+    Wait(0.5);
+    SetUltimateCharge(zero,100);
+    PressButton(zero, Button.Ultimate);
+    PressButton(duplicatedbot, Button.Ultimate);
+}
+
+rule: 'Instakill'
+Event.OnDamageTaken
+if(dooplicated)
+{
+    if(EventDamage() > 1){
+        Kill(EventPlayer(), Attacker());
+    }
+}
+void setzero(define damagepercent){
+    define allplayer = AllPlayers();
+    allplayer = RemoveFromArray(allplayer,zero);
+    allplayer = RemoveFromArray(allplayer,duplicatedbot);
+    StartDamageModification(allplayer, zero, damagepercent, DamageModificationRev.ReceiversDamagersAndDamagePercent);
+    victimdamagemod[0] = LastDamageModificationID();
+    StartDamageModification(allplayer, duplicatedbot, damagepercent, DamageModificationRev.ReceiversDamagersAndDamagePercent);
+    victimdamagemod[1] = LastDamageModificationID();
+}
+void unsetzero(){
+    StopDamageModification(victimdamagemod[0]);
+    StopDamageModification(victimdamagemod[1]);
+}
+
+void setinvuln(define bool){
+    if(bool){
+        SetStatus(zero, Null(),Status.PhasedOut,9999);
+        SetStatus(duplicatedbot, Null(),Status.PhasedOut,9999);
+    }
+    else {
+        ClearStatus(zero, Status.PhasedOut);
+        ClearStatus(duplicatedbot, Status.PhasedOut);
+    }
+}
+
+rule: 'Dash - Evade'
+Event.OngoingPlayer
+if(dooplicated)
+if(EventPlayer() == zero ||EventPlayer() == duplicatedbot)
+if(IsUsingAbility1(EventPlayer()))
+{
+    unsetzero();
+    setzero(0);
+    setinvuln(True());
+    Wait(0.60);
+    unsetzero();
+    setzero(2000);
+    setinvuln(False());
+}
+
+globalvar define killed = [];
+
+
+
+rule: 'killed during zero phase'
+Event.OnElimination
+if(EventPlayer() == duplicatedbot || EventPlayer() == zero)
+if(IsAlive(zero) && IsAlive(duplicatedbot))
+{
+    define victim = Victim();
+    DisableRespawning(victim);
+    killed = Append(killed,victim);
+}
+rule: 'attacked - zero'
+Event.OngoingPlayer
+if(dooplicated)
+if(IsFiringPrimary(zero))
+if(EventPlayer() == zero)
+{
+    ApplyImpulse(zero, FacingDirectionOf(zero), 10,Relative.ToWorld,ContraryMotion.Incorporate);
+}
+rule: 'Reset Zeros ultimate'
+if(dooplicated)
+{
+    SetUltimateCharge(zero, 100);
+    SetUltimateCharge(duplicatedbot,UltimateChargePercent(zero));
+    PressButton(zero,Button.Ultimate);
+    //SetFacing(duplicatedbot,RayCastHitPosition(EyePosition(zero), (EyePosition(zero) + (FacingDirectionOf(zero) *200)), AllPlayers(), [duplicatedbot,zero],True()), Relative.ToWorld);
+    Wait(8);
+    LoopIfConditionIsTrue();
+}
+rule: 'Zero attacks'
+if(dooplicated)
+if(IsButtonHeld(zero, Button.PrimaryFire))
+{
+    PressButton(duplicatedbot,Button.PrimaryFire);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+/*
+rule: 'Zero does nothing'
+if(dooplicated)
+if(IsButtonHeld(zero, Button.SecondaryFire))
+{
+    PressButton(duplicatedbot,Button.SecondaryFire);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+rule: 'Zero still does nothing'
+if(dooplicated)
+if(IsButtonHeld(zero, Button.Melee))
+{
+    PressButton(duplicatedbot,Button.Melee);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+rule: 'Zero reloads his katana'
+if(dooplicated)
+if(IsButtonHeld(zero, Button.Reload))
+{
+    PressButton(duplicatedbot,Button.Reload);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+
+rule: 'Zero dashes'
+if(dooplicated)
+if(IsButtonHeld(zero, Button.Ability1))
+{
+    PressButton(duplicatedbot,Button.Ability1);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+*/
+rule: 'Zero deflects, yeah in this version he is not attacking and deflecting at the same time'
+if(dooplicated)
+if(IsButtonHeld(zero, Button.Ability2))
+{
+    PressButton(duplicatedbot,Button.Ability2);
+    Wait(0.05);
+    LoopIfConditionIsTrue();
+}
+
+rule: 'Zero died'
+Event.OnDeath
+if(EventPlayer() == duplicatedbot)
+if(dooplicated)
+{
+    DestroyDummyBot(duplicatedbot);
+    Kill(zero,Attacker());
+    //dooplicated =False();
+}
+
+rule: 'Zero Draws his sword'
+if(dooplicated)
+if(IsUsingUltimate(zero))
+{
+    SetUltimateCharge(duplicatedbot,100);
+    PressButton(duplicatedbot,Button.Ultimate);
+}
+
+
+
+rule: 'Clueless'
+Event.OnPlayerJoin
+if(dooplicated)
+{
+    Wait(1);
+    ForcePlayerHero(EventPlayer(),Hero.Sigma);
+    Kill(EventPlayer(), Null());
+    DisableRespawning(EventPlayer());
+    Wait(5);
+    CreateHudText(EventPlayer(), "Thou shalt only watch till it's done",Null(), Null(), Location.Top,0,Color.Red,Color.Red,Color.Red,HudTextRev.VisibleToAndSortOrder,Spectators.DefaultVisibility);
+    EventPlayer().badtiming = LastTextID();
+}
