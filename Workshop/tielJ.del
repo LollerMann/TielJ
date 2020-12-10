@@ -582,6 +582,8 @@ if(CountOf(AllLivingPlayers()) == 2 || (songlen < 3))
         }
     }
     DestroyDummyBot(duplicatedbot);
+    StopForcingPlayerOutlines(AllPlayers(), zero);
+    EnableNameplates(AllPlayers(),zero);
 }
 
 void restore(memory _memory){

@@ -40,7 +40,7 @@ void falling(define initial){
         else if(initial) {
             define playa = allp[i];
             ForcePlayerHero(playa,HeroOf(playa));
-            CreateInWorldText(zero,"KILL",EyePosition(playa), 2,Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition,Color.Red,Spectators.DefaultVisibility);
+            CreateInWorldText(zero,"KILL",(EyePosition(playa) + Up()), 2,Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition,Color.Red,Spectators.DefaultVisibility);
             if(playa != zero)memories = Append(memories,new memory(playa, PositionOf(playa), FacingDirectionOf(playa),UltimateChargePercent(playa), IsUsingUltimate(playa)));
             else fade = new memory(playa, PositionOf(playa), FacingDirectionOf(playa),UltimateChargePercent(playa), IsUsingUltimate(playa));
         }
@@ -59,6 +59,8 @@ void falling(define initial){
         Wait(0.05);
         SetSlowMotion(100);
         ClearStatus(duplicatedbot,Status.PhasedOut);
+        StartForcingPlayerOutlines(AllPlayers(), zero,True(), Color.Red,OutlineType.Always);
+        DisableNameplates(AllPlayers(), zero);
     }
     //SmallMessage(zero, HeroOf(duplicatedbot));
     DisableMovementCollisionWithPlayers(duplicatedbot);
