@@ -7,6 +7,8 @@ playervar define badtiming;
 
 playervar define metduplicate = False();
 playervar define sdInstructionHudRed = 100;
+
+globalvar define SneakyDriverMaps = [Map.Lijiang_Control_Center, Map.Lijiang_Control_Center_Lunar, Map.Lijiang_Garden,Map.Lijiang_Garden_Lunar, Map.Lijiang_Night_Market,Map.Lijiang_Night_Market_Lunar, Map.Lijiang_Tower,Map.Lijiang_Tower_Lunar];
 class memory{
     public define player;
     public Vector position;

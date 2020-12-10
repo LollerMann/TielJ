@@ -530,8 +530,10 @@ rule: 'its time'
 Event.OngoingGlobal
 if(songname == "Sneaky Driver | Bill Kiley")
 if(CountOf(AllPlayers(Team.Team1)) < 6 || CountOf(AllPlayers(Team.Team2)) < 6)
+if(CountOf(AllPlayers()) > 2)
 if(zero == HostPlayer())
 if(CoolStuffToggle)
+if(ArrayContains(SneakyDriverMaps,CurrentMap()))
 if(!dooplicated)
 {
     zero = HostPlayer();
